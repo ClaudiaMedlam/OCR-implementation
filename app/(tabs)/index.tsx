@@ -2,6 +2,7 @@ import { Text, View, StyleSheet, ActivityIndicator, ScrollView } from 'react-nat
 import * as ImagePicker from 'expo-image-picker';
 import { useState } from 'react';
 import { Link } from 'expo-router';
+import * as ImageManipulator from 'expo-image-manipulator';
 
 import Button from '@/components/Button'; 
 import ImageViewer from '@/components/ImageViewer';
@@ -12,28 +13,52 @@ const GOOGLE_VISION_API_KEY = "AIzaSyC78EQJEDEwiCWaV_cwYU9vjOTvvlSFWX0"; // ADDE
 
 export default function Index() {
   const [selectedImage, setSelectedImage] = useState<string | undefined>(undefined);
+  const [croppedImage, setCroppedImage] = useState<string | null>(null); // ADDED FOR OCR STEP 2 CROPPING
 
   const [extractedText, setExtractedText] = useState<string | null>(null); // ADDED FOR OCR
   const [loading, setLoading] = useState(false); // ADDED FOR OCR
 
+
+
   const pickImageAsync = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'], // ADDED FOR OCR
-      allowsEditing: true,
+      allowsEditing: true, 
       quality: 1,
-      base64: true, // ADDED FOR OCR
+      // base64: true, // ADDED FOR OCR
     });
 
     if (!result.canceled) {
       setSelectedImage(result.assets[0].uri);
+      
+      await cropImage(result.assets[0].uri); // ADDED FOR OCR STEP 2 CROPPING
       // ADDED FOR OCR
-      if (result.assets[0].base64) {
-        processImage(result.assets[0].base64);
-      } else {
-        console.error("Image conversion to base64 failed");
-      }
+      // if (result.assets[0].base64) {
+      //   processImage(result.assets[0].base64);
+      // } else {
+      //   console.error("Image conversion to base64 failed");
+      // }
     } else {
       alert('You did not select any image.');
+    }
+  };
+
+  // ADDED FOR OCR STEP 2 CROPPING
+  const cropImage = async (uri: string) => {
+    try {
+      const manipResult = await ImageManipulator.manipulateAsync(
+        uri,
+        [{ crop: { originX: 50, originY: 50, width: 300, height: 200 } }], // Adjust as nec
+        { compress: 1, format: ImageManipulator.SaveFormat.JPEG, base64: true}
+      );
+
+      setCroppedImage(manipResult.uri);
+
+      if(manipResult.base64) {
+        processImage(manipResult.base64);
+      }
+    } catch (error) {
+      console.error("Error cropping image: ", error);
     }
   };
 
