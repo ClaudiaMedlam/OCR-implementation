@@ -58,6 +58,8 @@ export default function Index() {
         return;
       }
 
+      logImageSize(photo.uri);
+
       await cropImage(photo.uri);
 
       setShowAppOptions(true);
@@ -69,12 +71,29 @@ export default function Index() {
 
   };
 
+  const logImageSize = (uri: string) => {
+    Image.getSize(
+      uri,
+      (width, height) => {
+       console.log(`Image Dimernsions: Width = ${width}, Height = ${height}`);
+      }
+    );
+  };
+
   // ADDED FOR OCR STEP 2 CROPPING
   const cropImage = async (uri: string) => {
     try {
-      const manipResult = await ImageManipulator.manipulateAsync(
+      const resizedImage = await ImageManipulator.manipulateAsync(
         uri,
-        [{ crop: { originX: 25, originY: 25, width: 200, height: 200 } }], // Adjust as nec
+        [{resize: {width: 500 }}],
+        { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG}
+      );
+
+      console.log(`Resized image: ${resizedImage.width} x ${resizedImage.height}`);
+
+      const manipResult = await ImageManipulator.manipulateAsync(
+        resizedImage.uri,
+        [{ crop: { height: 60, originX: 150, originY: 343, width: 200 } }], // Adjust as nec
         { compress: 1, format: ImageManipulator.SaveFormat.JPEG, base64: true}
       );
 
@@ -114,19 +133,17 @@ export default function Index() {
       );
 
       const result = await response.json();
-      // console.log("API Response: ", JSON.stringify(result, null, 2));
+
 
       if(result.responses && result.responses[0]) {
         if( result.responses[0].fullTextAnnotation) {
           const extractedWord = result.responses[0].fullTextAnnotation.text.trim();
           router.push({ pathname: "/lookup", params: { word: extractedWord } });
-          // setExtractedText(result.responses[0].fullTextAnnotation.text);
-          // console.log("✅ Extracted Text:", result.responses[0].fullTextAnnotation.text);
+
           console.log("This worked")
         
         } else if (result.responses[0].textAnnotations && result.responses[0].textAnnotations.length > 0) {
-          // setExtractedText(result.responses[0].textAnnotations[0].description);
-          // console.log("✅ Extracted Text (Alternative):", result.responses[0].textAnnotations[0].description);
+
         } else {
           setExtractedText("No text detected");
           console.warn("⚠️ Google Vision API did not detect any text.");
@@ -172,6 +189,20 @@ export default function Index() {
         </View>
 
         {loading && <ActivityIndicator size="large" color="#fff" />}
+
+                {/* {croppedImage && (
+                  <View style={styles.imagePreviewContainer}>
+                    <Text style={styles.debugText}>Cropped Image Preview:</Text>
+                    <Image source={{ uri: croppedImage }} style={styles.croppedImage} />
+                  </View>
+                )}
+
+                {extractedText && (
+                  <View style={styles.wordContainer}>
+                    <Text style={styles.word}>{extractedText}</Text>
+                  </View>
+                )} */}
+
 
     </GestureHandlerRootView>
   );
@@ -266,4 +297,29 @@ const styles = StyleSheet.create({
     paddingRight: 75,
     zIndex: 10,
   },
+
+  imagePreviewContainer: {
+    marginTop: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#fff",
+    padding: 10,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: "#FFB300",
+  },
+  
+  croppedImage: {
+    width: 100,  // Matches cropped area
+    height: 100,  // Matches cropped area
+    resizeMode: "contain",
+  },
+  
+  debugText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#004D40",
+    marginBottom: 5,
+  },
+
 });

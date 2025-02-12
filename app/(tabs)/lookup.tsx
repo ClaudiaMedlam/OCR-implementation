@@ -1,18 +1,6 @@
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
-const CustomHeaderTitle = () => (
-  <Text style={{ 
-      fontSize: 24, 
-      fontWeight: "bold", 
-      color: "#004D40", 
-      fontFamily: "ComicNeue-Bold",
-      marginLeft: 15, 
-       }}>
-          ReadEasy
-  </Text>
-);
-
 export default function Lookup() {
   const { word } = useLocalSearchParams(); // get the passed word
   const router = useRouter();
