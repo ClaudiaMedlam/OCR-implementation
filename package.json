@@ -41,7 +41,8 @@
     "react-native-webview": "13.12.5",
     "expo-image": "~2.0.5",
     "expo-image-picker": "~16.0.6",
-    "expo-image-manipulator": "~13.0.6"
+    "expo-image-manipulator": "~13.0.6",
+    "expo-camera": "~16.0.16"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
@@ -55,6 +56,6 @@
   },
   "private": true,
   "overrides": {
-      "@expo/image-utils": "0.6.3"
-    }
+    "@expo/image-utils": "0.6.3"
+  }
 }

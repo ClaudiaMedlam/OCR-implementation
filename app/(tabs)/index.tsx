@@ -1,8 +1,11 @@
-import { Text, View, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
+import { Text, View, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity, Platform } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
-import { useState } from 'react';
-import { Link } from 'expo-router';
+import { useRouter } from 'expo-router';
 import * as ImageManipulator from 'expo-image-manipulator';
+import { Camera, CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 
 import Button from '@/components/Button'; 
 import ImageViewer from '@/components/ImageViewer';
@@ -12,35 +15,58 @@ const PlaceholderImage = require("@/assets/images/Slime-snapshot.jpeg");
 const GOOGLE_VISION_API_KEY = "AIzaSyC78EQJEDEwiCWaV_cwYU9vjOTvvlSFWX0"; // ADDED FOR OCR
 
 export default function Index() {
+  const router = useRouter(); // reroutes to next page
+  const [permission, requestCameraPermission] = useCameraPermissions(); // To gain user permission to use camera
+  const cameraRef = useRef<CameraView | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | undefined>(undefined);
   const [croppedImage, setCroppedImage] = useState<string | null>(null); // ADDED FOR OCR STEP 2 CROPPING
+  const [showAppOptions, setShowAppOptions] = useState<boolean>(false);
+  const [result, setResult] = useState<string | null>(null);
 
   const [extractedText, setExtractedText] = useState<string | null>(null); // ADDED FOR OCR
   const [loading, setLoading] = useState(false); // ADDED FOR OCR
 
+  if( !permission) {
+    //Camera permissions are still loading
+    return <View />
+  }
 
+  if ( !permission.granted) {
+    //Camera permissions are not granted yet
+    return (
+      <View style={styles.container}>
+        <Text style={styles.text}>We need your permission to show the camera</Text>
+        <Button theme={'primary'} onPress={requestCameraPermission} label="Allow camera use" />
+      </View>
+    )
+  }
 
-  const pickImageAsync = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'], // ADDED FOR OCR
-      allowsEditing: true, 
-      quality: 1,
-      // base64: true, // ADDED FOR OCR
-    });
-
-    if (!result.canceled) {
-      setSelectedImage(result.assets[0].uri);
-      
-      await cropImage(result.assets[0].uri); // ADDED FOR OCR STEP 2 CROPPING
-      // ADDED FOR OCR
-      // if (result.assets[0].base64) {
-      //   processImage(result.assets[0].base64);
-      // } else {
-      //   console.error("Image conversion to base64 failed");
-      // }
-    } else {
-      alert('You did not select any image.');
+  // Handle tap in box to select word image (in "freeze frame")
+  const handleFocusBoxTap = async () => {
+    if (!cameraRef.current) {
+      console.error("Camera reference is not available.");
+      return;
     }
+
+    try {
+      //Capture a photo
+      const photo = await cameraRef.current.takePictureAsync();
+
+      // Ensure the photo exists before processing
+      if (!photo || !photo.uri) {
+        console.error("Failed to capture image of word.");
+        return;
+      }
+
+      await cropImage(photo.uri);
+
+      setShowAppOptions(true);
+      
+
+    } catch (error) {
+      console.error("Error capturing image:", error);
+    }
+
   };
 
   // ADDED FOR OCR STEP 2 CROPPING
@@ -88,17 +114,19 @@ export default function Index() {
       );
 
       const result = await response.json();
-      console.log("API Response: ", JSON.stringify(result, null, 2));
+      // console.log("API Response: ", JSON.stringify(result, null, 2));
 
       if(result.responses && result.responses[0]) {
         if( result.responses[0].fullTextAnnotation) {
-          setExtractedText(result.responses[0].fullTextAnnotation.text);
-          console.log("✅ Extracted Text:", result.responses[0].fullTextAnnotation.text);
+          const extractedWord = result.responses[0].fullTextAnnotation.text.trim();
+          router.push({ pathname: "/lookup", params: { word: extractedWord } });
+          // setExtractedText(result.responses[0].fullTextAnnotation.text);
+          // console.log("✅ Extracted Text:", result.responses[0].fullTextAnnotation.text);
           console.log("This worked")
         
         } else if (result.responses[0].textAnnotations && result.responses[0].textAnnotations.length > 0) {
-          setExtractedText(result.responses[0].textAnnotations[0].description);
-          console.log("✅ Extracted Text (Alternative):", result.responses[0].textAnnotations[0].description);
+          // setExtractedText(result.responses[0].textAnnotations[0].description);
+          // console.log("✅ Extracted Text (Alternative):", result.responses[0].textAnnotations[0].description);
         } else {
           setExtractedText("No text detected");
           console.warn("⚠️ Google Vision API did not detect any text.");
@@ -116,52 +144,134 @@ export default function Index() {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.imageContainer}>
-      <ImageViewer imgSource={PlaceholderImage} selectedImage={selectedImage} />
-      </View>
+    <GestureHandlerRootView style={styles.container}>
+      {/* <SafeAreaView> */}
+        <View style={styles.textContainer}> 
+          <Text style={styles.text}>Tap the word you want to look up:</Text>
+        </View>
 
-      <View style={styles.footerContainer}>
-        <Button theme="primary" label="Choose a photo" onPress={pickImageAsync}/>
-        <Button label="Use this photo" />
-      </View>
+        <View style={styles.imageContainer}>
+        {Platform.OS === 'web' ? (
+                // Mirrors the camera if front facing on a computer
+                <CameraView 
+                  ref={cameraRef}
+                  style={styles.webCamera} 
+                  facing='front'
+                />
+              ) : (
+                // Restricts device view to back campera
+                <CameraView 
+                ref={cameraRef}
+                style={styles.camera} 
+                facing='back'
+                />
+              )
+          }
 
-      {loading && <ActivityIndicator size="large" color="#fff" />}
+        <TouchableOpacity style={styles.focusBox} onPress={handleFocusBoxTap} activeOpacity={1} />
+        </View>
 
-      {extractedText && (
-        <ScrollView style={styles.textContainer}>
-          <Text style={styles.text}>{extractedText}</Text>
-        </ScrollView>
-      )}
-    </View>
+        {loading && <ActivityIndicator size="large" color="#fff" />}
+{/*         
+        
+        {extractedText && (
+          <View style={styles.wordContainer}>
+            <Text style={styles.word}>{extractedText}</Text>
+          </View>
+        )} */}
+      {/* </SafeAreaView> */}
+
+    </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#25292e',
+    backgroundColor: '#E0F2F1',
     alignItems: 'center',
+    justifyContent: 'flex-start',
   },
+
   imageContainer: {
-    flex: 1,
-    paddingTop: 28,
-  },
-  footerContainer: {
-    flex: 1 / 3,
+    flex: 2,
+    width: '90%',
+    maxWidth: 500,
+    height: 440,
+    backgroundColor: '#80CBC4',
+    borderRadius: 15,
+    borderWidth: 3,
+    borderColor: '#FFB300',
+    justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 5, 
+    padding: 'auto',
+  },
+
+  // Yellow Focus Box that adjusts based on tap
+  focusBox: {
+    position: 'absolute',
+    width: 200, // Approximate word width
+    height: 60, // Approximate word height
+    borderWidth: 2,
+    borderColor: '#FFB300',
+    backgroundColor: '#FFB30040',
+    borderRadius: 5,
+    top: '50%',
+    left: '50%',
+    transform: [{ translateX: -100 }, { translateY: -30 }], // Center the box
+  },
+
+  camera: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    borderRadius: 15,
+  },
+
+  webCamera: {
+    flex: 1,
+    width: '100%',
+    transform: [{ scaleX: -1 }]
+  },
+
+  footerContainer: {
+    flex: 1 / 2,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   textContainer: {
-    flex: 1,
-    backgroundColor: '#fff',
-    padding: 10,
-    margin: 10,
-    borderRadius: 10,
+    paddingTop: 50,
+    paddingBottom:20,
   },
 
   text: {
-    fontSize: 16,
-    color: '#000',
+    fontSize: 20,
+    color: '#004D40',
+    fontFamily: "ComicNeue-Regular",
+  },
+
+  word: {
+    fontSize: 32,
+    color: '#F5F5F5',
+    fontFamily: 'ComicNeue-Bold',
+  },
+
+  wordContainer: {
+    flex: 1,
+    backgroundColor: '#FFB300',
+    width: 'auto',
+    maxWidth: '90%',
+    height: 'auto',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 15,
+    paddingLeft: 75,
+    paddingRight: 75,
+    zIndex: 10,
   },
 });
