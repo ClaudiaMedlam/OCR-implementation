@@ -1,4 +1,4 @@
-import { Text, View, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity, Platform } from 'react-native';
+import { Text, View, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity, Platform, Image } from 'react-native';
 import React, { useState, useRef, useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -74,7 +74,7 @@ export default function Index() {
     try {
       const manipResult = await ImageManipulator.manipulateAsync(
         uri,
-        [{ crop: { originX: 50, originY: 50, width: 300, height: 200 } }], // Adjust as nec
+        [{ crop: { originX: 25, originY: 25, width: 200, height: 200 } }], // Adjust as nec
         { compress: 1, format: ImageManipulator.SaveFormat.JPEG, base64: true}
       );
 
@@ -172,14 +172,6 @@ export default function Index() {
         </View>
 
         {loading && <ActivityIndicator size="large" color="#fff" />}
-{/*         
-        
-        {extractedText && (
-          <View style={styles.wordContainer}>
-            <Text style={styles.word}>{extractedText}</Text>
-          </View>
-        )} */}
-      {/* </SafeAreaView> */}
 
     </GestureHandlerRootView>
   );

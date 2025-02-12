@@ -1,17 +1,40 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+
+const CustomHeaderTitle = () => (
+  <Text style={{ 
+      fontSize: 24, 
+      fontWeight: "bold", 
+      color: "#004D40", 
+      fontFamily: "ComicNeue-Bold",
+      marginLeft: 15, 
+       }}>
+          ReadEasy
+  </Text>
+);
 
 export default function Lookup() {
   const { word } = useLocalSearchParams(); // get the passed word
   const router = useRouter();
 
-  console.log("We got to this page!")
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Looking up:</Text>
-      <Text style={styles.word}>{word}</Text>
-      {/* Placeholder for definition */}
-      <Text style={styles.definition}>Definition loading...</Text>
+        <View style={styles.textContainer}>
+            <Text style={styles.text}>Ok, we're looking this word up for you:</Text>
+        
+      
+            <View style={styles.wordContainer}>
+                    <Text style={styles.word}>{word}</Text>
+            </View>
+        
+        </View>
+
+        <View style={styles.gifContainer}>
+            <Image
+                source={require("@/assets/gifs/Mental Health Quarantine GIF by Timothy Winchester.gif")}
+                style={styles.gif}
+            />
+        </View>
 
       <TouchableOpacity style={styles.button} onPress={() => router.back()}>
         <Text style={styles.buttonText}>Choose another word</Text>
@@ -28,29 +51,66 @@ const styles = StyleSheet.create({
     backgroundColor: '#E0F2F1',
     padding: 20,
   },
-  header: {
-    fontSize: 18,
+
+  textContainer: {
+    flex: 1,
+    paddingTop: 50,
+    // paddingBottom:20,
+  },
+
+  text: {
+    fontSize: 20,
     color: '#004D40',
-    marginBottom: 10,
+    fontFamily: "ComicNeue-Regular",
   },
-  word: {
-    fontSize: 32,
-    color: '#FFB300',
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
-  definition: {
-    fontSize: 16,
-    color: '#004D40',
-    marginBottom: 40,
-  },
+
   button: {
-    backgroundColor: '#FFB300',
-    padding: 15,
+    flex: 1 / 2,
+    backgroundColor: '#80CBC4',
+    paddingLeft: 30,
+    paddingRight: 30,
+    width: 'auto',
+    height: 'auto',
+    alignItems: 'center',
+    justifyContent: 'center',
     borderRadius: 10,
   },
+
   buttonText: {
     color: '#004D40',
-    fontSize: 16,
+    fontSize: 24,
+    fontFamily: 'ComicNeue-Bold',
+  },
+
+  word: {
+    fontSize: 32,
+    color: '#F5F5F5',
+    fontFamily: 'ComicNeue-Bold',
+  },
+
+  wordContainer: {
+    flex: 1,
+    backgroundColor: '#FFB300',
+    width: 'auto',
+    maxWidth: '90%',
+    height: 'auto',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 15,
+    marginTop: 50,
+    marginBottom: 20,
+    paddingLeft: 75,
+    paddingRight: 75,
+  },
+
+  gifContainer: {
+    flex: 2,
+    alignItems: 'center',
+  },
+
+  gif: {
+    marginTop: 20,
+    width: 200,
+    height: 200,
   },
 });

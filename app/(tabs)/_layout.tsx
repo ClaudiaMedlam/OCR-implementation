@@ -76,26 +76,36 @@ export default function TabLayout() {
                     <Ionicons name={ focused ? 'search-sharp' : 'search-outline'} color={color} size={48} />
                 ), 
             }} 
-        />
-    
-        <Tabs.Screen 
-            name="definition"
-            options={{ 
-                title: 'Definition',
-                tabBarIcon: ({ color, focused }) => (
-                    <Ionicons name={focused ? 'book' : 'book-outline'} color={color} size={48} />
-                ), 
-            }} 
-        />
-        <Tabs.Screen 
-            name="morpheme"
-            options={{ 
-                title: 'Why is that it?',
-                tabBarIcon: ({ color, focused }) => (
-                    <Ionicons name={focused ? 'information' : 'information-outline'} color={color} size={48} />
-                ), 
-            }} 
-        />
+      />
+
+      <Tabs.Screen 
+          name="look up"
+          options={{ 
+            title: 'Look Up',
+            tabBarIcon: ({ color, focused }) => (
+                <Ionicons name={ focused ? 'search-sharp' : 'search-outline'} color={color} size={48} />
+            ), 
+          }} 
+      />
+  
+      <Tabs.Screen 
+          name="definition"
+          options={{ 
+              title: 'Definition',
+              tabBarIcon: ({ color, focused }) => (
+                  <Ionicons name={focused ? 'book' : 'book-outline'} color={color} size={48} />
+              ), 
+          }} 
+      />
+      <Tabs.Screen 
+          name="morpheme"
+          options={{ 
+              title: 'Why is that it?',
+              tabBarIcon: ({ color, focused }) => (
+                  <Ionicons name={focused ? 'information' : 'information-outline'} color={color} size={48} />
+              ), 
+          }} 
+      />
 
     </Tabs>
   );
