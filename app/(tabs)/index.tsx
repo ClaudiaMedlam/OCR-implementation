@@ -6,9 +6,11 @@ import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { Camera, CameraView, CameraType, useCameraPermissions } from 'expo-camera';
+import { useFocusEffect } from '@react-navigation/native';
 
 import Button from '@/components/Button'; 
 import ImageViewer from '@/components/ImageViewer';
+import { funWords, properNouns } from "@/constants/wordLists";
 
 const PlaceholderImage = require("@/assets/images/Slime-snapshot.jpeg");
 
@@ -24,7 +26,14 @@ export default function Index() {
   const [result, setResult] = useState<string | null>(null);
 
   const [extractedText, setExtractedText] = useState<string | null>(null); // ADDED FOR OCR
+  const [warningText, setWarningText] = useState<string | null>(null);
   const [loading, setLoading] = useState(false); // ADDED FOR OCR
+
+  useFocusEffect(
+    React.useCallback(() => {
+      setLoading(false); // Reset loading state when user returns to page
+    }, [])
+  );
 
   if( !permission) {
     //Camera permissions are still loading
@@ -138,26 +147,81 @@ export default function Index() {
       if(result.responses && result.responses[0]) {
         if( result.responses[0].fullTextAnnotation) {
           const extractedWord = result.responses[0].fullTextAnnotation.text.trim();
-          router.push({ pathname: "/lookup", params: { word: extractedWord } });
 
-          console.log("This worked")
+          // Following process to ensure only one word chosen:
+          // Split text into words
+          let words = extractedWord
+          .split(/\s+/) // Split by space or new line
+          .filter((word: string) => /^[a-zA-Z]+$/.test(word));
+
+          // Error if numbers
+          if (words.length === 0) {
+            setWarningText("I can't read numbers! \u{1F916}\nTry scanning a word instead.")
+            console.warn("⚠️ Only numbers detected.")
+            setLoading(false);
+            return;
+          }
+
+          // Find the midpoint character
+          const midpoint = Math.floor(extractedWord.length/2);
+
+          // Find the word that covers the midpoint character
+          let charCount = 0;
+          let selectedWord = words[0];
+
+          for (let word of words) {
+            charCount += word.length + 1; // +1 accounts for spaces
+            if (charCount >= midpoint) {
+              selectedWord = word;
+              break;
+            }
+          }
+
+          console.log('Selected word = ', selectedWord);
+
+          router.push({ pathname: "/lookup", params: { word: selectedWord } });
+          return;
         
-        } else if (result.responses[0].textAnnotations && result.responses[0].textAnnotations.length > 0) {
+        } 
+        // Handle case where fullTextAnnotation is missing but textAnnotation exists - e.g. partial or missing or nonsense words
+        else if (result.responses[0].textAnnotations && result.responses[0].textAnnotations.length > 1) {
 
+            // Pick the first detected word
+            const fallbackWord = result.responses[0].textAnnotations[1].description;
+            console.warn("⚠️ OCR detected but full text missing. Possible word:", fallbackWord);
+
+            // Validate the word before using it
+            const isValidWord = /^[a-zA-Z]+$/.test(fallbackWord) && fallbackWord.length > 2;
+
+            if (isValidWord) {
+              router.push({ pathname: "/lookup", params: { word: fallbackWord } });
+              return;
+            } else {
+              setWarningText("Hmm, I couldn't recognize that word. \u{1F914} \nPlease try again.");
+              console.warn("⚠️ Detected word is invalid:", fallbackWord);
+            }
         } else {
-          setExtractedText("No text detected");
+          setWarningText("Oh no! No word detected! \u{1F575} \nPlease try again.");
           console.warn("⚠️ Google Vision API did not detect any text.");
         } 
       } else {
-        setExtractedText("Error: No valid response from API.");
+        setWarningText("Hmmm, there was a problem reading your word. \u{1F633} \nPlease try again.");
         console.warn("⚠️ API response structure is invalid.");
+
       }
     } catch (error) {
       console.error("❌ Error processing image:", error);
-      setExtractedText("Error processing image.");
+
+      // Reset state so child can try again
+      setCroppedImage(null);
+      setWarningText("Oops something went wrong \u{1FAE3} \nLet's try again...");
     }
 
     setLoading(false);
+  };
+
+  const clearWarning = () => {
+    setWarningText(null);
   };
 
   return (
@@ -185,24 +249,21 @@ export default function Index() {
               )
           }
 
+          {warningText && (
+            <TouchableOpacity style={styles.warningContainer} onPress={clearWarning}>
+              <Text style={styles.warningText}>{warningText}</Text>
+            </TouchableOpacity>
+          )}
+
+          {loading && (
+            <View style={styles.loadingOverlay}>
+              <ActivityIndicator size="large" color="#004D40" /> 
+            </View>
+          )}
+
         <TouchableOpacity style={styles.focusBox} onPress={handleFocusBoxTap} activeOpacity={1} />
+
         </View>
-
-        {loading && <ActivityIndicator size="large" color="#fff" />}
-
-                {/* {croppedImage && (
-                  <View style={styles.imagePreviewContainer}>
-                    <Text style={styles.debugText}>Cropped Image Preview:</Text>
-                    <Image source={{ uri: croppedImage }} style={styles.croppedImage} />
-                  </View>
-                )}
-
-                {extractedText && (
-                  <View style={styles.wordContainer}>
-                    <Text style={styles.word}>{extractedText}</Text>
-                  </View>
-                )} */}
-
 
     </GestureHandlerRootView>
   );
@@ -220,7 +281,7 @@ const styles = StyleSheet.create({
     flex: 2,
     width: '90%',
     maxWidth: 500,
-    height: 440,
+    // height: 440,
     backgroundColor: '#80CBC4',
     borderRadius: 15,
     borderWidth: 3,
@@ -315,11 +376,30 @@ const styles = StyleSheet.create({
     resizeMode: "contain",
   },
   
-  debugText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#004D40",
-    marginBottom: 5,
+  warningContainer: {
+    position: "absolute",
+    top: "20%",
+    width: "80%",
+    padding: 10,
+    alignItems: 'center',
+    backgroundColor: '#00000080',
+    borderRadius: 20,
+  },
+
+  warningText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: "#FFB300",
+    textAlign: 'center',
+  },
+
+  loadingOverlay: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: [{ translateX: -25}, {translateY: -25}], // Adjust so centred
+    zIndex: 10,
+    padding: 10,
   },
 
 });

@@ -41,17 +41,18 @@ export default function TabLayout() {
     <Tabs
         screenOptions={{
             tabBarActiveTintColor: '#26969A',
+            tabBarStyle: {
+                backgroundColor: '#E0F2F1',
+                height: 90, // to fit in icons
+                paddingBottom: 20, // etra space for better touchability
+            },
             headerTitle: () => null,
             headerStyle: {
                 backgroundColor: '#80CBC4',
-                height: 150,
+                height: 120,
             },
             headerShadowVisible: false,
             headerTintColor: '#004D40',
-            tabBarStyle: {
-                backgroundColor: '#E0F2F1',
-                height: 100,
-            },
             headerLeft: CustomHeaderTitle,
             headerRight: () => (
                 <View style={{flexDirection: 'row'}}>

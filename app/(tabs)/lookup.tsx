@@ -1,9 +1,11 @@
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 export default function Lookup() {
   const { word } = useLocalSearchParams(); // get the passed word
   const router = useRouter();
+  const [showFallback, setShowFallback] = useState<boolean>(false);
 
   return (
     <View style={styles.container}>
@@ -21,7 +23,9 @@ export default function Lookup() {
             <Image
                 source={require("@/assets/gifs/Mental Health Quarantine GIF by Timothy Winchester.gif")}
                 style={styles.gif}
+                onError={() => setShowFallback(true)} // Show fallback text if Gif fails
             />
+            {showFallback && <Text style={styles.gifFallbackText}>Loading...</Text>}
         </View>
 
       <TouchableOpacity style={styles.button} onPress={() => router.back()}>
@@ -43,7 +47,7 @@ const styles = StyleSheet.create({
   textContainer: {
     flex: 1,
     paddingTop: 50,
-    // paddingBottom:20,
+
   },
 
   text: {
@@ -94,11 +98,26 @@ const styles = StyleSheet.create({
   gifContainer: {
     flex: 2,
     alignItems: 'center',
+
   },
 
   gif: {
     marginTop: 20,
     width: 200,
     height: 200,
+    borderRadius: 20,
+    borderColor: '#FFB300',
+    borderWidth: 5,
+
   },
+
+  gifFallbackText: {
+    position: "absolute",
+    color: "#FFF",
+    fontSize: 16,
+   fontWeight: "bold",
+   backgroundColor: "rgba(0, 0, 0, 0.5)", // Slight background for visibility
+   padding: 5,
+   borderRadius: 5,
+  }
 });
