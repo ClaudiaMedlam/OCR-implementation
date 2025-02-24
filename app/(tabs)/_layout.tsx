@@ -23,6 +23,7 @@ const CustomHeaderTitle = () => (
     </Text>
 );
 
+// TO DO: REMOVE THE SPACE - IE HIDE THE TAB FOR ACTIVE PAGE!!
 
 export default function TabLayout() {
     const [fontsLoaded, setFontsLoaded] = useState(false);
@@ -70,8 +71,8 @@ export default function TabLayout() {
                     ? { display: 'none' } 
                     : {
                         backgroundColor: '#E0F2F1',
-                        // height: 120, // to fit in icons
-                        // paddingBottom: 20, // etra space for better touchability
+                        height: 120, // to fit in icons
+                        paddingBottom: 20, // etra space for better touchability
                     },
                 headerTitle: () => null,
                 headerStyle: {
@@ -97,29 +98,30 @@ export default function TabLayout() {
 
             })}
         >
+            
             <Tabs.Screen 
-            name="tts"
-            listeners={({ navigation }) => ({
-                tabPress: (e) => {
-                    e.preventDefault(); // Stop navigation
-                    console.log("TTS Button Pressed");
-                    triggerTTS(activeTab); // Call TTS function instead
-                },
-            })}
-            options={{ 
-                tabBarLabel: 'TTS',
-                tabBarAccessibilityLabel: "Hear description out loud",
-                tabBarIcon: ({ color, focused }) => (
-                    <Ionicons 
-                        name={focused ? 'megaphone-sharp' : 'megaphone-outline'} 
-                        color={color} 
-                        // size={48}
-                    />
-                ), 
-            }} 
+                name="tts"
+                listeners={({ navigation }) => ({
+                    tabPress: (e) => {
+                        e.preventDefault(); // Stop navigation
+                        console.log("TTS Button Pressed");
+                        triggerTTS(activeTab); // Call TTS function instead
+                    },
+                })}
+                options={{ 
+                    tabBarLabel: 'TTS',
+                    tabBarAccessibilityLabel: "Hear description out loud",
+                    tabBarIcon: ({ color, focused }) => (
+                        <Ionicons 
+                            name={focused ? 'megaphone-sharp' : 'megaphone-outline'} 
+                            color={color} 
+                            size={30}
+                        />
+                    ), 
+                }} 
             />
 
-        <Tabs.Screen 
+            <Tabs.Screen 
                 name="index" 
                 options={{ 
                     tabBarLabel: 'Home',
@@ -127,11 +129,11 @@ export default function TabLayout() {
                         <Ionicons 
                             name={ focused ? 'search-sharp' : 'search-outline'} 
                             color={color}
-                            // size={48} 
+                            size={30} 
                         />
                     ), 
                 }} 
-        />
+            />
 
             {/* Dynamic Tab: Show Either "definition' or 'morpheme' (whichever isn't active*/}
             {dynamicTab && (
@@ -146,13 +148,13 @@ export default function TabLayout() {
                                     ? (focused ? 'book' : 'book-outline') 
                                     : (focused ? 'skull' : 'skull-outline')} 
                                 color={color}
-                                // size={48} 
+                                size={30} 
                                 />
                         ), 
                     }} 
                 />
             )}
-        
+            
 
         </Tabs>
 
