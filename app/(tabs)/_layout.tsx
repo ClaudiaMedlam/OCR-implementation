@@ -26,10 +26,16 @@ export default function TabLayout() {
     const [fontsLoaded, setFontsLoaded] = useState(false);
     const segments = useSegments(); // to see which part of the navigation tree is active
     const activeTab = segments[segments.length - 1]; // Get the last segment - i.e. current route
-    const hideTabBar = !['definition', 'morpheme'].includes(activeTab); // So that tab bar can be hidden on other pages
 
     // Show either definition or morpheme page (whichever is not active)
-    const dynamicTab = activeTab === 'definition' ? 'morpheme' : 'definition';
+    let dynamicTab = 'definition';
+    if (activeTab === 'definition') {
+        dynamicTab = 'morpheme';
+     } else if (activeTab === 'morpheme') {
+        dynamicTab = 'definition';
+     }
+
+    const hideTabBar = !['definition', 'morpheme'].includes(activeTab); // So that tab bar can be hidden on required pages
 
     // Load fonts before rendering tabs
     useEffect(() => {
@@ -47,13 +53,15 @@ export default function TabLayout() {
 
   return (
     <Tabs
-        screenOptions={{
+        screenOptions={({ route }) => ({
             tabBarActiveTintColor: '#26969A',
-            tabBarStyle: hideTabBar ? { display: 'none' } : {
-                backgroundColor: '#E0F2F1',
-                // height: 120, // to fit in icons
-                // paddingBottom: 20, // etra space for better touchability
-            },
+            tabBarStyle: hideTabBar 
+                ? { display: 'none' } 
+                : {
+                    backgroundColor: '#E0F2F1',
+                    // height: 120, // to fit in icons
+                    // paddingBottom: 20, // etra space for better touchability
+                },
             headerTitle: () => null,
             headerStyle: {
                 backgroundColor: '#80CBC4',
@@ -73,14 +81,15 @@ export default function TabLayout() {
                     </TouchableOpacity>
                 </View>
                 
-            )
+            ),
+            tabBarButton: activeTab === route.name ? () => null : undefined, 
 
-        }}
+        })}
     >
         <Tabs.Screen 
           name="tts"
           options={{ 
-              tabBarLabel: '',
+              tabBarLabel: 'TTS',
               tabBarAccessibilityLabel: "Hear description out loud",
               tabBarIcon: ({ color, focused }) => (
                   <Ionicons 
@@ -95,7 +104,7 @@ export default function TabLayout() {
       <Tabs.Screen 
             name="index" 
             options={{ 
-                tabBarLabel: '',
+                tabBarLabel: 'Home',
                 tabBarIcon: ({ color, focused }) => (
                     <Ionicons 
                         name={ focused ? 'search-sharp' : 'search-outline'} 
@@ -106,37 +115,26 @@ export default function TabLayout() {
             }} 
       />
 
-      <Tabs.Screen 
-          name="look up"
-          options={{ 
-            tabBarLabel: "",
-            tabBarAccessibilityLabel: "Looking up the word",
-            tabBarIcon: ({ color, focused }) => (
-                <Ionicons 
-                    name={ focused ? 'search-sharp' : 'search-outline'} 
-                    color={color}
-                    // size={48}  
-                />
-            ), 
-          }} 
-      />
-  
-      <Tabs.Screen 
-          name={dynamicTab}
-          options={{ 
-              tabBarLabel: "", // Removes text label
-              tabBarAccessibilityLabel: dynamicTab === 'definition' ? 'What the word means' : 'Why the word means that',
-              tabBarIcon: ({ color, focused }) => (
-                  <Ionicons 
-                    name={dynamicTab === 'definition' 
-                        ? (focused ? 'book' : 'book-outline') 
-                        : (focused ? 'skull' : 'skull-outline')} 
-                    color={color}
-                    // size={48} 
-                    />
-              ), 
-          }} 
-      />
+        {/* Dynamic Tab: Show Either "definition' or 'morpheme' (whichever isn't active*/}
+        {dynamicTab && (
+            <Tabs.Screen 
+                name={dynamicTab}
+                options={{ 
+                    tabBarLabel: "The biz", // Removes text label
+                    tabBarAccessibilityLabel: dynamicTab === 'definition' ? 'What the word means' : 'Why the word means that',
+                    tabBarIcon: ({ color, focused }) => (
+                        <Ionicons 
+                            name={dynamicTab === 'definition' 
+                                ? (focused ? 'book' : 'book-outline') 
+                                : (focused ? 'skull' : 'skull-outline')} 
+                            color={color}
+                            // size={48} 
+                            />
+                    ), 
+                }} 
+            />
+        )}
+      
 
     </Tabs>
   );

@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
       word: {
         fontSize: 32,
         color: '#000',
-        fontFamily: 'ComicNeue-Bold',
+        fontFamily: 'ComicNeue-Regular',
       },
     
       wordContainer: {
