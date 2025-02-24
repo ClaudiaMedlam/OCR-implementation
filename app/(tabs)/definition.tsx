@@ -3,6 +3,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import React, { useState } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 
+
 export default function DefinitionScreen() {
   const { word } = useLocalSearchParams(); // Get the passed word
     const [isToolTipVisible, setIsToolTipVisible] = useState(false);
