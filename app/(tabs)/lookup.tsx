@@ -1,11 +1,28 @@
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
-import React, { useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 export default function Lookup() {
   const { word } = useLocalSearchParams(); // get the passed word
   const router = useRouter();
   const [showFallback, setShowFallback] = useState<boolean>(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null); // Store timeout ID so that it can clear if return to homepage
+
+  useEffect(() => {
+    // Simulate a "database lookup" and then naviagte automatically for the time being to definition page
+    const timeout = setTimeout(() => {
+      router.push({
+        pathname: '/definition',
+        params: { word },
+      });
+    }, 2000); // temporary 5-second delay
+
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current); // Clear timeout when component unmounts or re-renders
+      }
+    };
+  }, [word]);
 
   return (
     <View style={styles.container}>
@@ -29,7 +46,7 @@ export default function Lookup() {
         </View>
 
       <TouchableOpacity style={styles.button} onPress={() => router.back()}>
-        <Text style={styles.buttonText}>Choose another word</Text>
+        <Text style={styles.buttonText}>Choose a different word</Text>
       </TouchableOpacity>
     </View>
   );
@@ -42,6 +59,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#E0F2F1',
     padding: 20,
+    paddingBottom: 120,
   },
 
   textContainer: {

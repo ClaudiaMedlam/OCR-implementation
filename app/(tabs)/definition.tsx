@@ -1,8 +1,10 @@
 import { Text, View, StyleSheet, TouchableOpacity, Modal } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import React, { useState } from 'react';
+import { useLocalSearchParams } from 'expo-router';
 
 export default function DefinitionScreen() {
+  const { word } = useLocalSearchParams(); // Get the passed word
     const [isToolTipVisible, setIsToolTipVisible] = useState(false);
 
     return (
@@ -10,7 +12,7 @@ export default function DefinitionScreen() {
 
             <View style={styles.container}> 
                 <View style={styles.wordContainer}>
-                    <Text style={styles.word}>figured</Text>
+                    <Text style={styles.word}>{word}</Text>
                 </View>
             </View>
 
@@ -66,15 +68,14 @@ const styles = StyleSheet.create({
     
       word: {
         fontSize: 32,
-        color: '#F5F5F5',
+        color: '#000',
         fontFamily: 'ComicNeue-Bold',
       },
     
       wordContainer: {
         flex: 1,
         backgroundColor: '#FFB300',
-        width: 'auto',
-        maxWidth: '90%',
+        minWidth: '90%',
         height: 'auto',
         alignItems: 'center',
         justifyContent: 'center',

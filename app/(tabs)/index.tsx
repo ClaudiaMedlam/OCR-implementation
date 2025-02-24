@@ -275,6 +275,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#E0F2F1',
     alignItems: 'center',
     justifyContent: 'flex-start',
+    paddingBottom: 120,
   },
 
   imageContainer: {
@@ -319,7 +320,8 @@ const styles = StyleSheet.create({
   webCamera: {
     flex: 1,
     width: '100%',
-    transform: [{ scaleX: -1 }]
+    transform: [{ scaleX: -1 }],
+    borderRadius: 15,
   },
 
   footerContainer: {

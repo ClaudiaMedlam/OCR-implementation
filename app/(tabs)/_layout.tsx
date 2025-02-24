@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Text, ActivityIndicator, TouchableOpacity, View } from 'react-native';
-import { Tabs } from 'expo-router';
+import { Tabs, useSegments } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as SplashScreen from "expo-splash-screen";
+
 
 import { loadFonts } from "@/app/fonts"; 
 
@@ -20,8 +21,15 @@ const CustomHeaderTitle = () => (
     </Text>
 );
 
+
 export default function TabLayout() {
     const [fontsLoaded, setFontsLoaded] = useState(false);
+    const segments = useSegments(); // to see which part of the navigation tree is active
+    const activeTab = segments[segments.length - 1]; // Get the last segment - i.e. current route
+    const hideTabBar = !['definition', 'morpheme'].includes(activeTab); // So that tab bar can be hidden on other pages
+
+    // Show either definition or morpheme page (whichever is not active)
+    const dynamicTab = activeTab === 'definition' ? 'morpheme' : 'definition';
 
     // Load fonts before rendering tabs
     useEffect(() => {
@@ -41,10 +49,10 @@ export default function TabLayout() {
     <Tabs
         screenOptions={{
             tabBarActiveTintColor: '#26969A',
-            tabBarStyle: {
+            tabBarStyle: hideTabBar ? { display: 'none' } : {
                 backgroundColor: '#E0F2F1',
-                height: 90, // to fit in icons
-                paddingBottom: 20, // etra space for better touchability
+                // height: 120, // to fit in icons
+                // paddingBottom: 20, // etra space for better touchability
             },
             headerTitle: () => null,
             headerStyle: {
@@ -69,12 +77,31 @@ export default function TabLayout() {
 
         }}
     >
+        <Tabs.Screen 
+          name="tts"
+          options={{ 
+              tabBarLabel: '',
+              tabBarAccessibilityLabel: "Hear description out loud",
+              tabBarIcon: ({ color, focused }) => (
+                  <Ionicons 
+                    name={focused ? 'megaphone-sharp' : 'megaphone-outline'} 
+                    color={color} 
+                    // size={48}
+                />
+              ), 
+          }} 
+        />
+
       <Tabs.Screen 
             name="index" 
             options={{ 
-                title: 'Home',
+                tabBarLabel: '',
                 tabBarIcon: ({ color, focused }) => (
-                    <Ionicons name={ focused ? 'search-sharp' : 'search-outline'} color={color} size={48} />
+                    <Ionicons 
+                        name={ focused ? 'search-sharp' : 'search-outline'} 
+                        color={color}
+                        // size={48} 
+                    />
                 ), 
             }} 
       />
@@ -82,28 +109,31 @@ export default function TabLayout() {
       <Tabs.Screen 
           name="look up"
           options={{ 
-            title: 'Look Up',
+            tabBarLabel: "",
+            tabBarAccessibilityLabel: "Looking up the word",
             tabBarIcon: ({ color, focused }) => (
-                <Ionicons name={ focused ? 'search-sharp' : 'search-outline'} color={color} size={48} />
+                <Ionicons 
+                    name={ focused ? 'search-sharp' : 'search-outline'} 
+                    color={color}
+                    // size={48}  
+                />
             ), 
           }} 
       />
   
       <Tabs.Screen 
-          name="definition"
+          name={dynamicTab}
           options={{ 
-              title: 'Definition',
+              tabBarLabel: "", // Removes text label
+              tabBarAccessibilityLabel: dynamicTab === 'definition' ? 'What the word means' : 'Why the word means that',
               tabBarIcon: ({ color, focused }) => (
-                  <Ionicons name={focused ? 'book' : 'book-outline'} color={color} size={48} />
-              ), 
-          }} 
-      />
-      <Tabs.Screen 
-          name="morpheme"
-          options={{ 
-              title: 'Why is that it?',
-              tabBarIcon: ({ color, focused }) => (
-                  <Ionicons name={focused ? 'information' : 'information-outline'} color={color} size={48} />
+                  <Ionicons 
+                    name={dynamicTab === 'definition' 
+                        ? (focused ? 'book' : 'book-outline') 
+                        : (focused ? 'skull' : 'skull-outline')} 
+                    color={color}
+                    // size={48} 
+                    />
               ), 
           }} 
       />
