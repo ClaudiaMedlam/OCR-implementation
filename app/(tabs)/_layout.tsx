@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Text, ActivityIndicator, TouchableOpacity, View, StyleSheet } from 'react-native';
+import { Text, TouchableOpacity, View, StyleSheet } from 'react-native';
 import { Tabs, useSegments } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as SplashScreen from "expo-splash-screen";
@@ -23,21 +23,11 @@ const CustomHeaderTitle = () => (
     </Text>
 );
 
-// TO DO: REMOVE THE SPACE - IE HIDE THE TAB FOR ACTIVE PAGE!!
-
 export default function TabLayout() {
     const [fontsLoaded, setFontsLoaded] = useState(false);
     const segments = useSegments(); // to see which part of the navigation tree is active
     const activeTab = segments[segments.length - 1] || ""; // Get the last segment - i.e. current route
     const [isTTSPlaying, setIsTTSPlaying] = useState(false); // for TTS
-
-    // Show either definition or morpheme page (whichever is not active)
-    let dynamicTab = 'definition';
-    if (activeTab === 'definition') {
-        dynamicTab = 'morpheme';
-     } else if (activeTab === 'morpheme') {
-        dynamicTab = 'definition';
-     }
 
     const hideTabBar = !['definition', 'morpheme'].includes(activeTab); // So that tab bar can be hidden on required pages
 
@@ -94,11 +84,12 @@ export default function TabLayout() {
                     </View>
                     
                 ),
-                tabBarButton: activeTab === route.name ? () => null : undefined, 
+                // tabBarButton: activeTab === route.name ? () => null : undefined, 
+
 
             })}
         >
-            
+
             <Tabs.Screen 
                 name="tts"
                 listeners={({ navigation }) => ({
@@ -109,13 +100,13 @@ export default function TabLayout() {
                     },
                 })}
                 options={{ 
-                    tabBarLabel: 'TTS',
+                    tabBarLabel: '', // "" Removes text label
                     tabBarAccessibilityLabel: "Hear description out loud",
                     tabBarIcon: ({ color, focused }) => (
                         <Ionicons 
                             name={focused ? 'megaphone-sharp' : 'megaphone-outline'} 
                             color={color} 
-                            size={30}
+                            size={40}
                         />
                     ), 
                 }} 
@@ -124,37 +115,48 @@ export default function TabLayout() {
             <Tabs.Screen 
                 name="index" 
                 options={{ 
-                    tabBarLabel: 'Home',
+                    tabBarLabel: '', // "" Removes text label
                     tabBarIcon: ({ color, focused }) => (
                         <Ionicons 
                             name={ focused ? 'search-sharp' : 'search-outline'} 
                             color={color}
-                            size={30} 
+                            size={40} 
                         />
                     ), 
                 }} 
             />
+            
 
             {/* Dynamic Tab: Show Either "definition' or 'morpheme' (whichever isn't active*/}
-            {dynamicTab && (
-                <Tabs.Screen 
-                    name={dynamicTab}
-                    options={{ 
-                        tabBarLabel: "The biz", // Removes text label
-                        tabBarAccessibilityLabel: dynamicTab === 'definition' ? 'What the word means' : 'Why the word means that',
-                        tabBarIcon: ({ color, focused }) => (
-                            <Ionicons 
-                                name={dynamicTab === 'definition' 
-                                    ? (focused ? 'book' : 'book-outline') 
-                                    : (focused ? 'skull' : 'skull-outline')} 
-                                color={color}
-                                size={30} 
-                                />
-                        ), 
-                    }} 
-                />
-            )}
+            <Tabs.Screen 
+                name="definition"
+                options={{ 
+                    tabBarLabel: "", // "" Removes text label
+                    tabBarAccessibilityLabel: 'What the word means',
+                    tabBarIcon: ({ color, focused }) => (
+                        <Ionicons 
+                            name={focused ? 'book' : 'book-outline'} 
+                            color={color}
+                            size={40} 
+                            />
+                    ), 
+                }} 
+            />
             
+            <Tabs.Screen 
+                name="morpheme"
+                options={{ 
+                    tabBarLabel: "", // "" Removes text label
+                    tabBarAccessibilityLabel: 'Why the word means that',
+                    tabBarIcon: ({ color, focused }) => (
+                        <Ionicons 
+                            name={focused ? 'skull' : 'skull-outline'} 
+                            color={color}
+                            size={40} 
+                            />
+                    ), 
+                }} 
+            />
 
         </Tabs>
 
