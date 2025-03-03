@@ -1,12 +1,50 @@
 import { Text, View, StyleSheet, TouchableOpacity, Modal } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocalSearchParams } from 'expo-router';
+
+// Define the interface
+interface DefinitionData {
+  part1_def: string;
+  part2_def: string;
+  example1: string;
+  example2?: string;
+  example3?: string;
+  example4?: string;
+}
 
 
 export default function DefinitionScreen() {
-  const { word } = useLocalSearchParams(); // Get the passed word
-    const [isToolTipVisible, setIsToolTipVisible] = useState(false);
+  const { word, word_id } = useLocalSearchParams(); // Get the passed word
+  const [pronunciation, setPronunciation] = useState<string>("");
+  const [definition, setDefinition ] = useState<DefinitionData | null>(null);
+  const [isToolTipVisible, setIsToolTipVisible] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const fetchDefinition = async () => {
+    try {
+      const response = await fetch(`http://192.168.1.150:5050/definition/${word_id}`);
+      const data = await response.json();
+
+      if (response.ok && data) {
+        setPronunciation(data.pronunciation);
+        console.log("Frontend pronunciation data: ", data.pronunciation);
+        setDefinition(data); // Store entire object for easy access
+      } else {
+        setError("definition is not found");
+      }
+    } catch (err) {
+      console.error("Error fetching definition: ", err);
+      setError("There was an error fetching the definition");
+    }
+  };
+
+  useEffect(() => {
+    console.log(`Fetching definition for word_id: ${word_id}`);
+
+    fetchDefinition();
+  }, [word_id]);
 
     return (
         <View style={styles.container}>
@@ -19,7 +57,7 @@ export default function DefinitionScreen() {
 
             <View style={styles.container}> 
                 <View style={styles.proContainer}>
-                    <Text style={styles.pronunciationText}>fig-urd</Text>
+                    <Text style={styles.pronunciationText}>{pronunciation}</Text>
                     <TouchableOpacity onPress={() => setIsToolTipVisible(!isToolTipVisible)}>
                         <Ionicons name='help-circle' color='#F5F5F5' size={40} />
                     </TouchableOpacity>
@@ -35,20 +73,22 @@ export default function DefinitionScreen() {
                     
             </View>
             
-
+            {/* Definition section */}
             <View style={styles.fullDefContainer}>
                 <View style={styles.defContainer}>
-                    <Text style={styles.defText}>"Figured" means you thought about something and found an answer or understood it.</Text>
+                    <Text style={styles.defText}>{definition?.part1_def}</Text>
                 </View>
 
                 <View style={styles.defContainer}>
                     <Text style={styles.defText}>For example: </Text>
-                    <Text style={styles.defText}>   "I figured out how to do the puzzle!"</Text>
-                    <Text style={styles.defText}>   "She figured it was time to go home."</Text>
+                    <Text style={styles.defText}>{definition?.example1}</Text>
+                    <Text style={styles.defText}>{definition?.example2}</Text>
+                    <Text style={styles.defText}>{definition?.example3}</Text>
+                    <Text style={styles.defText}>{definition?.example4}</Text>
                 </View>
 
                 <View style={styles.defContainer}>
-                    <Text style={styles.defText}>It's like when your brain works hard and says, "Aha, I got it!"</Text>
+                    <Text style={styles.defText}>{definition?.part2_def}</Text>
                 </View>
             </View>
             

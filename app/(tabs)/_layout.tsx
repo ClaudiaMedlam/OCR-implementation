@@ -4,6 +4,7 @@ import { Tabs, useSegments } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as SplashScreen from "expo-splash-screen";
 import * as Speech from 'expo-speech';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 
 import { loadFonts } from "@/app/fonts"; 
@@ -22,6 +23,8 @@ const CustomHeaderTitle = () => (
             ReadEasy
     </Text>
 );
+
+const Tab = createBottomTabNavigator();
 
 export default function TabLayout() {
     const [fontsLoaded, setFontsLoaded] = useState(false);
@@ -62,8 +65,11 @@ export default function TabLayout() {
                     : {
                         backgroundColor: '#E0F2F1',
                         height: 120, // to fit in icons
-                        paddingBottom: 20, // etra space for better touchability
+                        paddingBottom: 50, // extra space for better touchability
+                        justifyContent: 'center',
+                        alignItems: 'center',
                     },
+                tabBarIconStyle: {height: 75},
                 headerTitle: () => null,
                 headerStyle: {
                     backgroundColor: '#80CBC4',
@@ -84,7 +90,7 @@ export default function TabLayout() {
                     </View>
                     
                 ),
-                // tabBarButton: activeTab === route.name ? () => null : undefined, 
+
 
 
             })}
@@ -103,11 +109,20 @@ export default function TabLayout() {
                     tabBarLabel: '', // "" Removes text label
                     tabBarAccessibilityLabel: "Hear description out loud",
                     tabBarIcon: ({ color, focused }) => (
-                        <Ionicons 
-                            name={focused ? 'megaphone-sharp' : 'megaphone-outline'} 
-                            color={color} 
-                            size={40}
-                        />
+                        <View style={{ 
+                            flex: 1, 
+                            justifyContent: 'center', 
+                            alignItems: 'center', 
+                            height: 75, 
+                            width: 75 
+                        }}>
+                            <Ionicons 
+                                name={focused ? 'megaphone-sharp' : 'megaphone-outline'} 
+                                color={color} 
+                                size={48}
+                            />
+                        </View>
+                        
                     ), 
                 }} 
             />
@@ -117,11 +132,19 @@ export default function TabLayout() {
                 options={{ 
                     tabBarLabel: '', // "" Removes text label
                     tabBarIcon: ({ color, focused }) => (
-                        <Ionicons 
-                            name={ focused ? 'search-sharp' : 'search-outline'} 
-                            color={color}
-                            size={40} 
-                        />
+                        <View style={{ 
+                            flex: 1, 
+                            justifyContent: 'center', 
+                            alignItems: 'center', 
+                            height: 75, 
+                            width: 75 
+                        }}>
+                            <Ionicons 
+                                name={ focused ? 'search-sharp' : 'search-outline'} 
+                                color={color}
+                                size={48} 
+                            />
+                         </View>
                     ), 
                 }} 
             />
@@ -134,11 +157,19 @@ export default function TabLayout() {
                     tabBarLabel: "", // "" Removes text label
                     tabBarAccessibilityLabel: 'What the word means',
                     tabBarIcon: ({ color, focused }) => (
-                        <Ionicons 
-                            name={focused ? 'book' : 'book-outline'} 
-                            color={color}
-                            size={40} 
+                        <View style={{ 
+                            flex: 1, 
+                            justifyContent: 'center', 
+                            alignItems: 'center', 
+                            height: 75, 
+                            width: 75 
+                        }}>
+                            <Ionicons 
+                                name={focused ? 'book' : 'book-outline'} 
+                                color={color}
+                                size={48} 
                             />
+                        </View>
                     ), 
                 }} 
             />
@@ -149,11 +180,19 @@ export default function TabLayout() {
                     tabBarLabel: "", // "" Removes text label
                     tabBarAccessibilityLabel: 'Why the word means that',
                     tabBarIcon: ({ color, focused }) => (
-                        <Ionicons 
-                            name={focused ? 'skull' : 'skull-outline'} 
-                            color={color}
-                            size={40} 
+                        <View style={{ 
+                            flex: 1, 
+                            justifyContent: 'center', 
+                            alignItems: 'center', 
+                            height: 75, 
+                            width: 75 
+                        }}>
+                            <Ionicons 
+                                name={focused ? 'skull' : 'skull-outline'} 
+                                color={color}
+                                size={48} 
                             />
+                        </View>
                     ), 
                 }} 
             />

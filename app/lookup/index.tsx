@@ -6,23 +6,60 @@ export default function Lookup() {
   const { word } = useLocalSearchParams(); // get the passed word
   const router = useRouter();
   const [showFallback, setShowFallback] = useState<boolean>(false);
+  const [error, setError] = useState<string>(''); // Error message state
   const timeoutRef = useRef<NodeJS.Timeout | null>(null); // Store timeout ID so that it can clear if return to homepage
 
+  const fetchWordDetails = async () => {
+    try {
+      const response = await fetch(`http://192.168.1.150:5050/data/${word}`);
+
+      const data = await response.json();
+
+      console.log("Response from backend: ", data);
+
+      if ( response.ok && data) {
+        console.log("Word ID from backend: ", data.word_id);
+        // Word found, navigate to definition page
+        router.push({
+          pathname: '/definition',
+          params: { word: word, word_id: data.word_id },
+        });
+      } else {
+        // Word not found in the database
+        setError('Sorry, we do not currently have that word in our dictionary.');
+      }
+    } catch (err) {
+      console.error("Fetch request failed: ", err);
+      setError('There was an error fetching the word details. Please try again later.')
+    }
+  };
+
   useEffect(() => {
-    // Simulate a "database lookup" and then naviagte automatically for the time being to definition page
-    const timeout = setTimeout(() => {
-      router.push({
-        pathname: '/definition',
-        params: { word },
-      });
-    }, 2000); // temporary 5-second delay
+
+    console.log("useEffect triggered. Word is: ", word);
+    // Fetch word from the database
+    console.log("Fetching word details for: ", word);
+    console.log(`Request URL: http://localhost:5050/data/${word}`);
+
+    if(!word) {
+      console.log("BAH: word is apparently undefinted so fetch request is not executed");
+      return;
+    }
+
+    fetchWordDetails();
+    // const timeout = setTimeout(() => {
+    //   router.push({
+    //     pathname: '/definition',
+    //     params: { word },
+    //   });
+    // }, 2000); // temporary 5-second delay
 
     return () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current); // Clear timeout when component unmounts or re-renders
       }
     };
-  }, [word]);
+  }, [word, router]);
 
   return (
     <View style={styles.container}>
