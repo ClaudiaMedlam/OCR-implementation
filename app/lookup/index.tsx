@@ -14,7 +14,8 @@ export default function Lookup() {
 
   const fetchWordDetails = async () => {
     try {
-      const response = await fetch(`http://192.168.1.150:5050/data/${word}`);
+      // const response = await fetch(`https://6be2-158-223-122-234.ngrok-free.app/data/${word}`); // At uni
+      const response = await fetch(`http://192.168.1.150:5050/data/${word}`); // At home
 
       const data = await response.json();
 
@@ -87,7 +88,8 @@ export default function Lookup() {
     console.log("useEffect triggered. Word is: ", word);
     // Fetch word from the database
     console.log("Fetching word details for: ", word);
-    console.log(`Request URL: http://localhost:5050/data/${word}`);
+    // console.log(`Request URL: http://localhost:5050/data/${word}`);
+    // console.log (`Request URL: http://192.168.1.150:5050/definition/${word}`);
 
     if(!word) {
       console.log("BAH: word is apparently undefinted so fetch request is not executed");

@@ -1,14 +1,15 @@
 import { Text, View, StyleSheet, TouchableOpacity, Modal } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import React, { useState, useEffect } from 'react';
-import { useLocalSearchParams } from 'expo-router';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useLocalSearchParams, useFocusEffect } from 'expo-router';
 
-import { triggerTTS } from '@/utils/TTSHelper';
+import { triggerTTS, stopTTS } from '@/utils/TTSHelper';
 import { TTSProvider, useTTS } from '@/utils/TTSContext';
 
 
 // Define the interface
 interface DefinitionData {
+  [key: string]: string | undefined; // Allow dynamic key access
   part1_def: string;
   part2_def: string;
   example1: string;
@@ -21,23 +22,41 @@ interface DefinitionData {
 export default function DefinitionScreen() {
   const { word, word_id } = useLocalSearchParams(); // Get the passed word
   const { setTTStext } = useTTS(); // Use context to store text
-  const [pronunciation, setPronunciation] = useState<string>("");
+  const [pronunciation, setPronunciation] = useState<JSX.Element[] | null>(null);
   const [definition, setDefinition ] = useState<DefinitionData | null>(null);
   const [isToolTipVisible, setIsToolTipVisible] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  function formatPronunciation(pronunciation: string) {
+    if (!pronunciation) return null;
 
+    // Remove all "*" characters and split on "**" to identify bold sections
+    const parts = pronunciation.replace(/\*/g, "").split(/(\*\*.*?\*\*)/);
+
+    // THIS DOESN"T WORK QUITE TODO
+    return parts.map((part, index) => {
+      if (part.startsWith("*") && part.endsWith("*")) {
+        return (
+          <Text key={index} style={{ fontWeight: 'bold'}}>
+            {part.slice(2, -2)} {/* Remove surrounding "**" */}
+          </Text>
+        );
+      }
+      return <Text key={index}>{part}</Text>;
+    });
+  }
 
   useEffect(() => {
     console.log(`Fetching definition for word_id: ${word_id}`);
     const fetchDefinition = async () => {
       try {
-        const response = await fetch(`http://192.168.1.150:5050/definition/${word_id}`);
+        const response = await fetch(`http://192.168.1.150:5050/definition/${word_id}`); // at home
+        // const response = await fetch(`https://6be2-158-223-122-234.ngrok-free.app/definition/${word_id}`); // at uni
         const data = await response.json();
   
         if (response.ok && data) {
-          setPronunciation(data.pronunciation);
+          setPronunciation(formatPronunciation(data.pronunciation));
           console.log("Frontend pronunciation data: ", data.pronunciation);
           setDefinition(data); // Store entire object for easy access
   
@@ -50,7 +69,6 @@ export default function DefinitionScreen() {
                       .
                       ${data.part2_def ?? ""}`;
   
-          console.log("Setting TTS text in definnition:", text);
           setTTStext(text); // Store in context
         } else {
           setError("definition is not found");
@@ -62,6 +80,15 @@ export default function DefinitionScreen() {
     };
     fetchDefinition();
   }, [word_id]);
+
+  // Stop TTS when navigating away
+  useFocusEffect(
+    useCallback(() => {
+        return () => {
+            stopTTS(); // Stop speech when leaving page
+        };
+    }, [])
+);
 
     return (
         <View style={styles.container}>
@@ -97,11 +124,28 @@ export default function DefinitionScreen() {
                 </View>
 
                 <View style={styles.defContainer}>
-                    <Text style={styles.defText}>For example: </Text>
-                    {definition?.example1 && <Text style={[styles.defText, {marginLeft: 5}]}>{'\u2022'}  {definition.example1}</Text>}
-                    {definition?.example2 && <Text style={[styles.defText, {marginLeft: 5}]}>{'\u2022'}  {definition.example2}</Text>}
-                    {definition?.example3 && <Text style={[styles.defText, {marginLeft: 5}]}>{'\u2022'}  {definition.example3}</Text>}
-                    {definition?.example4 && <Text style={[styles.defText, {marginLeft: 5}]}>{'\u2022'}  {definition.example4}</Text>}
+                  <Text style={styles.defText}>For example: </Text>
+                  <View style={styles.exampleContainer}>
+                    {[1, 2, 3, 4].map((num) => {
+                        const example = definition?.[`example${num}`];
+
+                        if (!example) return null; // Skip empty examples
+                      
+                        return (
+                          <View key={num} style={styles.exampleRow}>
+                              <View style={styles.columnLeft}>
+                                <Text style={styles.defText}>{'\u2022'}</Text>
+                              </View>
+        
+                              <View style={styles.columnRight}>
+                                  <Text style={styles.defText}>{example}</Text>
+                              </View>
+                                          
+                          </View>
+                        )
+                      })}
+                  </View>
+                    
                 </View>
 
                 <View style={styles.defContainer}>
@@ -206,12 +250,30 @@ const styles = StyleSheet.create({
         backgroundColor: '#26969A',
         borderRadius: 15,
         paddingTop: 10,
+        paddingBottom: 10,
         paddingLeft: 20,
         paddingRight: 20,
         marginTop: 10,
         minHeight: 100,
       },
 
+      exampleContainer: {
+        flexDirection: 'column',
+        paddingBottom: 10,
+      },
 
+      exampleRow: {
+        flexDirection: 'row',
+      },
+
+      columnLeft: {
+        flex: 1, // Takes 1 part of the row
+        paddingRight: 10, // Adds spacing between the columns
+      },
+
+      columnRight: {
+        flex: 4, // Takes 2 part of the row
+
+      },
 
 })

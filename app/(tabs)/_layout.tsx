@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Text, TouchableOpacity, View, StyleSheet } from 'react-native';
-import { Tabs, useSegments } from 'expo-router';
+import { Tabs, useSegments, useLocalSearchParams } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as SplashScreen from "expo-splash-screen";
 import * as Speech from 'expo-speech';
@@ -59,6 +59,7 @@ export default function TabLayout() {
 
 function TabLayoutContent() {
     const { ttsText } = useTTS();
+    const { word, word_id } = useLocalSearchParams();  // Get params from initial navigation
     const segments = useSegments(); // to see which part of the navigation tree is active
     const activeTab = segments[segments.length - 1] || ""; // Get the last segment - i.e. current route
     const [isTTSPlaying, setIsTTSPlaying] = useState(false); // for TTS
@@ -173,6 +174,7 @@ function TabLayoutContent() {
                         </View>
                     ), 
                 }} 
+                
             />
             
 
@@ -198,6 +200,7 @@ function TabLayoutContent() {
                         </View>
                     ), 
                 }}
+                initialParams={{ word, word_id }}
             />
             
             <Tabs.Screen 
@@ -221,6 +224,7 @@ function TabLayoutContent() {
                         </View>
                     ), 
                 }} 
+                initialParams={{ word, word_id }}
             />
 
         </Tabs>

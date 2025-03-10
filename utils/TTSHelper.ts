@@ -18,11 +18,22 @@ export function triggerTTS(activePage: string, text: string) { // Default to emp
 
     console.log(`TTS speaking: ${textToRead}`);
 
-    Speech.speak(textToRead, {
-        language: "en-UK",
-        pitch: 1.0,
-        rate: 0.9,
-        onDone: () => console.log("TTS FINISHED"),
-        onStopped: () => console.log("TTS Stopped"),
-    });
+    // Stop any currently playing speech before speaking again
+    Speech.stop();
+
+    setTimeout(() => {
+        Speech.speak(textToRead, {
+            language: "en-UK",
+            pitch: 1.0,
+            rate: 0.9,
+            onDone: () => console.log("TTS FINISHED"),
+            onStopped: () => console.log("TTS Stopped"),
+        },);
+    }, 100); //Small delay to ensure `stop()` fully processes
 };
+
+// Function to stop speech manually
+export function stopTTS() {
+    console.log("TTS Stopped due to navigation");
+    Speech.stop();
+}
