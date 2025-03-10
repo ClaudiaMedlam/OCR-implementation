@@ -54,15 +54,19 @@ export default function MorphemeScreen() {
               setBreakdown(breakdownString);
 
       
-              const text = `${word} is made up of the following parts: 
-                          ${data.morph_part1 ?? ""} ${data.part1_expl ?? ""}.
-                          ${data.morph_part2 ?? ""} ${data.part2_expl ?? ""}.
-                          ${data.morph_part3 ?? ""} ${data.part3_expl ?? ""}.
-                          ${data.morph_part4 ?? ""} ${data.part4_expl ?? ""}.
-                          ${data.morph_part5 ?? ""} ${data.part5_expl ?? ""}.
-                          In summary: ${data.summary ?? ""}`;
+              const textSections = [
+                  `${word}:`, //Section 1
+                  // Section 2 - part by part
+                 `${data.morph_part1 ?? ""} ${data.part1_expl ?? ""}.
+                  ${data.morph_part2 ?? ""} ${data.part2_expl ?? ""}.
+                  ${data.morph_part3 ?? ""} ${data.part3_expl ?? ""}.
+                  ${data.morph_part4 ?? ""} ${data.part4_expl ?? ""}.
+                  ${data.morph_part5 ?? ""} ${data.part5_expl ?? ""}`,
+
+                  `In summary: ${data.summary ?? ""}` // Section 3
+              ].filter(section => section.trim() !== "");
       
-              setTTStext(text); // Store in context
+              setTTStext(textSections); // Store in context
             } else {
               setError("explanation is not found");
             }
@@ -132,10 +136,12 @@ export default function MorphemeScreen() {
                                   
                   </View>
                 )
-
-                
               })}
 
+            <View style={styles.defContainer}>
+              <Text style={styles.defText}>{morpheme?.summary}</Text>
+            </View>
+            
             </View>
             
         </View>
@@ -162,8 +168,7 @@ const styles = StyleSheet.create({
       wordContainer: {
         flex: 1,
         backgroundColor: '#FFB300',
-        width: 'auto',
-        maxWidth: '90%',
+        minWidth: '90%',
         height: 'auto',
         alignItems: 'center',
         justifyContent: 'center',
@@ -241,7 +246,7 @@ const styles = StyleSheet.create({
       },
 
       columnRight: {
-        flex: 6, // Takes right hand side of the row
+        flex: 5, // Takes right hand side of the row
 
       },
 

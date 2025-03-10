@@ -60,16 +60,26 @@ export default function DefinitionScreen() {
           console.log("Frontend pronunciation data: ", data.pronunciation);
           setDefinition(data); // Store entire object for easy access
   
-          const text = `${word}. ${data.part1_def ?? ""}.
-                      . 
-                      For example: ${data.example1 ?? ""},
-                      ${data.example2 ?? ""},
-                       ${data.example3 ?? ""},
-                        ${data.example4 ?? ""}.
-                      .
-                      ${data.part2_def ?? ""}`;
+          // const text = `${word}. ${data.part1_def ?? ""}.
+          //             . 
+          //             For example: ${data.example1 ?? ""},
+          //             ${data.example2 ?? ""},
+          //              ${data.example3 ?? ""},
+          //               ${data.example4 ?? ""}.
+          //             .
+          //             ${data.part2_def ?? ""}`;
+
+          // Format text as an array of sections so that they can be split up when played
+          const textSections = [
+            `${word}. ${data.part1_def ?? ""}`, // Section 1
+            `For example: ${data.example1 ?? ""}`, // Section 2
+            `${data.example2 ?? ""}`, // Section 3
+            `${data.example3 ?? ""}`, // Section 4
+            `${data.example4 ?? ""}`, // Section 5
+            `${data.part2_def ?? ""}` // Section 6
+          ].filter(section => section.trim() !== ""); // Remove empty sections
   
-          setTTStext(text); // Store in context
+          setTTStext(textSections); // Store in context
         } else {
           setError("definition is not found");
         }

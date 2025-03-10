@@ -8,7 +8,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 
 import { loadFonts } from "@/app/fonts"; 
-import { triggerTTS } from '@/utils/TTSHelper';
+import { triggerTTS, pauseTTS, stopTTS, resumeTTS } from '@/utils/TTSHelper';
 import DefinitionScreen from '@/app/(tabs)/definition';
 import MorphemeScreen from '@/app/(tabs)/morpheme';
 import { TTSProvider, useTTS } from '@/utils/TTSContext';
@@ -32,9 +32,6 @@ const Tab = createBottomTabNavigator();
 
 export default function TabLayout() {
     const [fontsLoaded, setFontsLoaded] = useState(false);
-
-
-
     // Load fonts before rendering tabs
     useEffect(() => {
         async function fetchFonts() {
@@ -67,13 +64,14 @@ function TabLayoutContent() {
 
     const hideTabBar = !['definition', 'morpheme'].includes(activeTab); // So that tab bar can be hidden on required pages
 
-    const stopTTS = () => {
-        Speech.stop();
-        setIsTTSPlaying(false);
-    };
+    // const stopTTS = () => {
+    //     Speech.stop();
+    //     setIsTTSPlaying(false);
+    // };
 
     const handleTTS = () => {
         console.log("TTS Button Pressed - Current ttsText:", ttsText);
+        setIsTTSPlaying(true);
         triggerTTS(activeTab, ttsText);
 
     }
@@ -232,10 +230,17 @@ function TabLayoutContent() {
         {/* Floating TTS Control */}
         {isTTSPlaying && (
             <View style={styles.ttsOverlay}>
-                <TouchableOpacity onPress={stopTTS} style={styles.ttsButton}>
-                    <Ionicons name='pause' size={32} color='white' />
-                    <Text style={styles.ttsButtonText}>Stop</Text>
-                </TouchableOpacity>
+                <View style={styles.buttonContainer}>
+                    <TouchableOpacity onPress={pauseTTS} style={styles.controlButton}>
+                        <Ionicons name='pause' size={32} color='white' />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={handleTTS} style={styles.controlButton}>
+                        <Ionicons name='refresh' size={32} color='white' />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => { stopTTS(); setIsTTSPlaying(false); }} style={styles.controlButton}>
+                        <Ionicons name='close' size={32} color='white' />
+                    </TouchableOpacity>
+                </View>
             </View>
         )}
 
@@ -249,14 +254,26 @@ const styles = StyleSheet.create ({
         bottom: 120, 
         right: 20,
         backgroundColor: "rgba(0, 0, 0, 0.8)",
-        padding: 10,
+        padding: 15,
         borderRadius: 10,
+        alignItems: 'center',
     },
+
+    buttonContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+
+    controlButton: {
+        marginHorizontal: 10,
+    },
+
     ttsButton: {
         flexDirection: "row",
         alignItems: "center",
         padding: 10,
     },
+
     ttsButtonText: {
         color: "white",
         marginLeft: 10,
