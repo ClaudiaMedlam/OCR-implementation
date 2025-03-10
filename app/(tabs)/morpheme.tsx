@@ -2,7 +2,9 @@ import { Text, View, StyleSheet, TouchableOpacity, Modal } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import React, { useState } from 'react';
 
-export default function DefinitionScreen() {
+import { TTSProvider, useTTS } from '@/utils/TTSContext';
+
+export default function MorphemeScreen() {
     const [isToolTipVisible, setIsToolTipVisible] = useState(false);
 
     return (

@@ -9,6 +9,10 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 import { loadFonts } from "@/app/fonts"; 
 import { triggerTTS } from '@/utils/TTSHelper';
+import DefinitionScreen from '@/app/(tabs)/definition';
+import MorphemeScreen from '@/app/(tabs)/morpheme';
+import { TTSProvider, useTTS } from '@/utils/TTSContext';
+
 
 SplashScreen.preventAutoHideAsync(); // Prevent splash screen from hiding automatically
 
@@ -28,11 +32,8 @@ const Tab = createBottomTabNavigator();
 
 export default function TabLayout() {
     const [fontsLoaded, setFontsLoaded] = useState(false);
-    const segments = useSegments(); // to see which part of the navigation tree is active
-    const activeTab = segments[segments.length - 1] || ""; // Get the last segment - i.e. current route
-    const [isTTSPlaying, setIsTTSPlaying] = useState(false); // for TTS
 
-    const hideTabBar = !['definition', 'morpheme'].includes(activeTab); // So that tab bar can be hidden on required pages
+
 
     // Load fonts before rendering tabs
     useEffect(() => {
@@ -49,10 +50,32 @@ export default function TabLayout() {
     }
 
 
+  return (
+   <TTSProvider>
+        <TabLayoutContent />
+   </TTSProvider>
+  );
+}
+
+function TabLayoutContent() {
+    const { ttsText } = useTTS();
+    const segments = useSegments(); // to see which part of the navigation tree is active
+    const activeTab = segments[segments.length - 1] || ""; // Get the last segment - i.e. current route
+    const [isTTSPlaying, setIsTTSPlaying] = useState(false); // for TTS
+
+
+    const hideTabBar = !['definition', 'morpheme'].includes(activeTab); // So that tab bar can be hidden on required pages
+
     const stopTTS = () => {
         Speech.stop();
         setIsTTSPlaying(false);
     };
+
+    const handleTTS = () => {
+        console.log("TTS Button Pressed - Current ttsText:", ttsText);
+        triggerTTS(activeTab, ttsText);
+
+    }
 
   return (
     <View style={{ flex: 1 }}>
@@ -101,8 +124,11 @@ export default function TabLayout() {
                 listeners={({ navigation }) => ({
                     tabPress: (e) => {
                         e.preventDefault(); // Stop navigation
-                        console.log("TTS Button Pressed");
-                        triggerTTS(activeTab); // Call TTS function instead
+
+                        // triggerTTS(activeTab, ttsText); // Call TTS function instead
+                        handleTTS(); // Calls a funciton inside the component
+                        
+                        
                     },
                 })}
                 options={{ 
@@ -144,7 +170,7 @@ export default function TabLayout() {
                                 color={color}
                                 size={48} 
                             />
-                         </View>
+                        </View>
                     ), 
                 }} 
             />
@@ -171,7 +197,7 @@ export default function TabLayout() {
                             />
                         </View>
                     ), 
-                }} 
+                }}
             />
             
             <Tabs.Screen 
@@ -210,7 +236,6 @@ export default function TabLayout() {
         )}
 
     </View>
-
   );
 }
 

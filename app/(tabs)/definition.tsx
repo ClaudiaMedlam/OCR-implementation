@@ -3,6 +3,10 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import React, { useState, useEffect } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 
+import { triggerTTS } from '@/utils/TTSHelper';
+import { TTSProvider, useTTS } from '@/utils/TTSContext';
+
+
 // Define the interface
 interface DefinitionData {
   part1_def: string;
@@ -16,33 +20,46 @@ interface DefinitionData {
 
 export default function DefinitionScreen() {
   const { word, word_id } = useLocalSearchParams(); // Get the passed word
+  const { setTTStext } = useTTS(); // Use context to store text
   const [pronunciation, setPronunciation] = useState<string>("");
   const [definition, setDefinition ] = useState<DefinitionData | null>(null);
   const [isToolTipVisible, setIsToolTipVisible] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const fetchDefinition = async () => {
-    try {
-      const response = await fetch(`http://192.168.1.150:5050/definition/${word_id}`);
-      const data = await response.json();
 
-      if (response.ok && data) {
-        setPronunciation(data.pronunciation);
-        console.log("Frontend pronunciation data: ", data.pronunciation);
-        setDefinition(data); // Store entire object for easy access
-      } else {
-        setError("definition is not found");
-      }
-    } catch (err) {
-      console.error("Error fetching definition: ", err);
-      setError("There was an error fetching the definition");
-    }
-  };
 
   useEffect(() => {
     console.log(`Fetching definition for word_id: ${word_id}`);
-
+    const fetchDefinition = async () => {
+      try {
+        const response = await fetch(`http://192.168.1.150:5050/definition/${word_id}`);
+        const data = await response.json();
+  
+        if (response.ok && data) {
+          setPronunciation(data.pronunciation);
+          console.log("Frontend pronunciation data: ", data.pronunciation);
+          setDefinition(data); // Store entire object for easy access
+  
+          const text = `${word}. ${data.part1_def ?? ""}.
+                      . 
+                      For example: ${data.example1 ?? ""},
+                      ${data.example2 ?? ""},
+                       ${data.example3 ?? ""},
+                        ${data.example4 ?? ""}.
+                      .
+                      ${data.part2_def ?? ""}`;
+  
+          console.log("Setting TTS text in definnition:", text);
+          setTTStext(text); // Store in context
+        } else {
+          setError("definition is not found");
+        }
+      } catch (err) {
+        console.error("Error fetching definition: ", err);
+        setError("There was an error fetching the definition");
+      }
+    };
     fetchDefinition();
   }, [word_id]);
 
@@ -81,10 +98,10 @@ export default function DefinitionScreen() {
 
                 <View style={styles.defContainer}>
                     <Text style={styles.defText}>For example: </Text>
-                    <Text style={styles.defText}>{definition?.example1}</Text>
-                    <Text style={styles.defText}>{definition?.example2}</Text>
-                    <Text style={styles.defText}>{definition?.example3}</Text>
-                    <Text style={styles.defText}>{definition?.example4}</Text>
+                    {definition?.example1 && <Text style={[styles.defText, {marginLeft: 5}]}>{'\u2022'}  {definition.example1}</Text>}
+                    {definition?.example2 && <Text style={[styles.defText, {marginLeft: 5}]}>{'\u2022'}  {definition.example2}</Text>}
+                    {definition?.example3 && <Text style={[styles.defText, {marginLeft: 5}]}>{'\u2022'}  {definition.example3}</Text>}
+                    {definition?.example4 && <Text style={[styles.defText, {marginLeft: 5}]}>{'\u2022'}  {definition.example4}</Text>}
                 </View>
 
                 <View style={styles.defContainer}>
@@ -171,7 +188,7 @@ const styles = StyleSheet.create({
       },
 
       defText: {
-        fontSize: 18,
+        fontSize: 20,
         color: '#E0F2F1',
         fontFamily: "ComicNeue-Regular",
       },

@@ -1,8 +1,11 @@
-import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
-import React, { useEffect, useState, useRef } from 'react';
+import { View, Text, Image, StyleSheet, TouchableOpacity, BackHandler } from 'react-native';
+import React, { useEffect, useState, useRef, useLayoutEffect } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from 'expo-router';
 
 export default function Lookup() {
+  const navigation = useNavigation();
   const { word } = useLocalSearchParams(); // get the passed word
   const router = useRouter();
   const [showFallback, setShowFallback] = useState<boolean>(false);
@@ -34,6 +37,51 @@ export default function Lookup() {
     }
   };
 
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerStyle: {
+        backgroundColor: '#80CBC4',
+        height: 120,
+      },
+      headerShadowVisible: false,
+      headerTintColor: '#004D40',
+      headerTitle: () => (
+        <Text
+          style={{
+            fontSize: 24,
+            fontWeight: 'bold',
+            color: '#004D40',
+            fontFamily: 'ComicNeue-Bold',
+            marginLeft: 15,
+          }}
+        >
+          ReadEasy
+        </Text>
+      ),
+      headerRight: () => (
+        <View style={{ flexDirection: 'row' }}>
+          <TouchableOpacity onPress={() => console.log('Profile Pressed')}>
+            <Ionicons
+              name="person-outline"
+              size={32}
+              color="#004D40"
+              style={{ marginRight: 15 }}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => console.log('Settings Pressed')}>
+            <Ionicons
+              name="settings-outline"
+              size={32}
+              color="#004D40"
+              style={{ marginRight: 15 }}
+            />
+          </TouchableOpacity>
+        </View>
+      ),
+    });
+  }, [navigation]);
+
   useEffect(() => {
 
     console.log("useEffect triggered. Word is: ", word);
@@ -47,12 +95,6 @@ export default function Lookup() {
     }
 
     fetchWordDetails();
-    // const timeout = setTimeout(() => {
-    //   router.push({
-    //     pathname: '/definition',
-    //     params: { word },
-    //   });
-    // }, 2000); // temporary 5-second delay
 
     return () => {
       if (timeoutRef.current) {
