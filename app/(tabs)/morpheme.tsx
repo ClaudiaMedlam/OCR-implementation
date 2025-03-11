@@ -63,7 +63,7 @@ export default function MorphemeScreen() {
                   ${data.morph_part4 ?? ""} ${data.part4_expl ?? ""}.
                   ${data.morph_part5 ?? ""} ${data.part5_expl ?? ""}`,
 
-                  `In summary: ${data.summary ?? ""}` // Section 3
+                  `${data.summary ?? ""}` // Section 3
               ].filter(section => section.trim() !== "");
       
               setTTStext(textSections); // Store in context

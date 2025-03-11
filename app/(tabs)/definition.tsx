@@ -59,15 +59,6 @@ export default function DefinitionScreen() {
           setPronunciation(formatPronunciation(data.pronunciation));
           console.log("Frontend pronunciation data: ", data.pronunciation);
           setDefinition(data); // Store entire object for easy access
-  
-          // const text = `${word}. ${data.part1_def ?? ""}.
-          //             . 
-          //             For example: ${data.example1 ?? ""},
-          //             ${data.example2 ?? ""},
-          //              ${data.example3 ?? ""},
-          //               ${data.example4 ?? ""}.
-          //             .
-          //             ${data.part2_def ?? ""}`;
 
           // Format text as an array of sections so that they can be split up when played
           const textSections = [
@@ -282,7 +273,7 @@ const styles = StyleSheet.create({
       },
 
       columnRight: {
-        flex: 4, // Takes 2 part of the row
+        flex: 6, // Takes 2 part of the row
 
       },
 
