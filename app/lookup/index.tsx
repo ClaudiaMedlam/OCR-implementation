@@ -19,10 +19,7 @@ export default function Lookup() {
 
       const data = await response.json();
 
-      console.log("Response from backend: ", data);
-
       if ( response.ok && data) {
-        console.log("Word ID from backend: ", data.word_id);
         // Word found, navigate to definition page
         router.push({
           pathname: '/definition',
@@ -84,15 +81,9 @@ export default function Lookup() {
   }, [navigation]);
 
   useEffect(() => {
-
-    console.log("useEffect triggered. Word is: ", word);
     // Fetch word from the database
-    console.log("Fetching word details for: ", word);
-    // console.log(`Request URL: http://localhost:5050/data/${word}`);
-    // console.log (`Request URL: http://192.168.1.150:5050/definition/${word}`);
-
     if(!word) {
-      console.log("BAH: word is apparently undefinted so fetch request is not executed");
+      console.log("BAH: word is apparently undefined so fetch request is not executed");
       return;
     }
 

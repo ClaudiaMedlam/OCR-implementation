@@ -54,19 +54,21 @@ export default function MorphemeScreen() {
               setBreakdown(breakdownString);
 
       
-              const textSections = [
-                  `${word}:`, //Section 1
-                  // Section 2 - part by part
-                 `${data.morph_part1 ?? ""} ${data.part1_expl ?? ""}.
-                  ${data.morph_part2 ?? ""} ${data.part2_expl ?? ""}.
-                  ${data.morph_part3 ?? ""} ${data.part3_expl ?? ""}.
-                  ${data.morph_part4 ?? ""} ${data.part4_expl ?? ""}.
-                  ${data.morph_part5 ?? ""} ${data.part5_expl ?? ""}`,
+              const text = `${word}`;
+              setTTStext(text);
+              // const textSections = [
+              //     `${word}:`, //Section 1
+              //     // Section 2 - part by part
+              //    `${data.morph_part1 ?? ""} ${data.part1_expl ?? ""}.
+              //     ${data.morph_part2 ?? ""} ${data.part2_expl ?? ""}.
+              //     ${data.morph_part3 ?? ""} ${data.part3_expl ?? ""}.
+              //     ${data.morph_part4 ?? ""} ${data.part4_expl ?? ""}.
+              //     ${data.morph_part5 ?? ""} ${data.part5_expl ?? ""}`,
 
-                  `${data.summary ?? ""}` // Section 3
-              ].filter(section => section.trim() !== "");
+              //     `${data.summary ?? ""}` // Section 3
+              // ].filter(section => section.trim() !== "");
       
-              setTTStext(textSections); // Store in context
+              // setTTStext(textSections); // Store in context
             } else {
               setError("explanation is not found");
             }

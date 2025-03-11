@@ -2,14 +2,14 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 interface TTSContextType {
-    ttsText: string[]; // Array so speech sections can be split up
-    setTTStext: (text: string[]) => void;
+    ttsText: string; 
+    setTTStext: (text: string) => void;
 }
 
 const TTSContext = createContext<TTSContextType | null>(null);
 
 export const TTSProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [ttsText, setTTStext] = useState<string[]>([]); // Default is an empty array of strings
+    const [ttsText, setTTStext] = useState<string>(""); // Default is an empty string
 
     return (
         <TTSContext.Provider value={{ ttsText, setTTStext }}>

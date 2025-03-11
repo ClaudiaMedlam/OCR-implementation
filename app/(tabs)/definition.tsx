@@ -3,8 +3,8 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import React, { useState, useEffect, useCallback } from 'react';
 import { useLocalSearchParams, useFocusEffect } from 'expo-router';
 
-import { triggerTTS, stopTTS } from '@/utils/TTSHelper';
-import { TTSProvider, useTTS } from '@/utils/TTSContext';
+import { stopTTS } from '@/utils/TTSHelper';
+import { useTTS } from '@/utils/TTSContext';
 
 
 // Define the interface
@@ -57,20 +57,11 @@ export default function DefinitionScreen() {
   
         if (response.ok && data) {
           setPronunciation(formatPronunciation(data.pronunciation));
-          console.log("Frontend pronunciation data: ", data.pronunciation);
           setDefinition(data); // Store entire object for easy access
 
-          // Format text as an array of sections so that they can be split up when played
-          const textSections = [
-            `${word}. ${data.part1_def ?? ""}`, // Section 1
-            `For example: ${data.example1 ?? ""}`, // Section 2
-            `${data.example2 ?? ""}`, // Section 3
-            `${data.example3 ?? ""}`, // Section 4
-            `${data.example4 ?? ""}`, // Section 5
-            `${data.part2_def ?? ""}` // Section 6
-          ].filter(section => section.trim() !== ""); // Remove empty sections
-  
-          setTTStext(textSections); // Store in context
+          const text = `${word}`;
+          setTTStext(text);
+
         } else {
           setError("definition is not found");
         }

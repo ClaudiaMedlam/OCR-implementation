@@ -8,21 +8,10 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 
 import { loadFonts } from "@/app/fonts"; 
-import { 
-    triggerTTS, 
-    pauseTTS, 
-    stopTTS, 
-    resumeTTS, 
-    skipBackTTS, 
-    skipForwardTTS, 
-    setUpdateUI,
-    getCurrentSection
- } from '@/utils/TTSHelper';
+import { triggerTTS } from '@/utils/TTSHelper';
 import DefinitionScreen from '@/app/(tabs)/definition';
 import MorphemeScreen from '@/app/(tabs)/morpheme';
 import { TTSProvider, useTTS } from '@/utils/TTSContext';
-
-// Check to see Sections in TTS work before committing TODO
 
 SplashScreen.preventAutoHideAsync(); // Prevent splash screen from hiding automatically
 
@@ -70,38 +59,15 @@ function TabLayoutContent() {
     const segments = useSegments(); // to see which part of the navigation tree is active
     const activeTab = segments[segments.length - 1] || ""; // Get the last segment - i.e. current route
     const [isTTSPlaying, setIsTTSPlaying] = useState(false); // for TTS
-    const [isPaused, setIsPaused] = useState(false); // for TTS
-    const [canSkipBack, setCanSkipBack] = useState(false); // false at start of recording
-    const [canSkipForward, setCanSkipForward] = useState(true); // true at start of recording
 
 
     const hideTabBar = !['definition', 'morpheme'].includes(activeTab); // So that tab bar can be hidden on required pages
 
-    const updateTTSui = () => {
-        const currentSectionIndex = getCurrentSection();
-        setIsPaused(false);
-        setCanSkipBack(currentSectionIndex > 0);
-        setCanSkipForward(currentSectionIndex == ttsText.length);
-    }
-
     const handleTTS = () => {
         console.log("TTS Button Pressed");
         setIsTTSPlaying(true);
-        triggerTTS(activeTab, ttsText, updateTTSui);
-        setIsPaused(false);
+        triggerTTS(activeTab, ttsText);
 
-    }
-
-    const handlePauseResume = () => {
-        if( isPaused ) {
-            resumeTTS();
-            setIsPaused(false);
-        } else {
-            pauseTTS();
-            setIsPaused(true);
-        }
-
-        // setIsPaused(!isPaused);
     }
 
   return (
@@ -130,7 +96,7 @@ function TabLayoutContent() {
                 headerLeft: CustomHeaderTitle,
                 headerRight: () => (
                     <View style={{flexDirection: 'row'}}>
-                        <TouchableOpacity onPress={() => console.log("Settings Pressed")}>
+                        <TouchableOpacity onPress={() => console.log("Profile Pressed")}>
                             <Ionicons name="person-outline" size={32} color="004D40" style={{ marginRight: 15}} />
                         </TouchableOpacity>
                         
@@ -253,70 +219,8 @@ function TabLayoutContent() {
 
         </Tabs>
 
-        {/* Floating TTS Control */}
-        {isTTSPlaying && (
-            <View style={styles.ttsOverlay}>
-                <View style={styles.buttonContainer}>
-
-                    <TouchableOpacity 
-                        onPress={skipBackTTS} 
-                        style={styles.controlButton}
-                        disabled={!canSkipBack}
-                    >
-                        <Ionicons name='play-back' size={32} color={canSkipBack ? 'white' : 'gray'} />
-                    </TouchableOpacity>
-
-                    <TouchableOpacity onPress={handlePauseResume} style={styles.controlButton}>
-                        <Ionicons name={isPaused ? 'play' : 'pause'} size={32} color='white' />
-                    </TouchableOpacity>
-
-                    <TouchableOpacity 
-                        onPress={skipForwardTTS} 
-                        style={styles.controlButton}
-                        disabled={!canSkipForward}
-                    >
-                        <Ionicons name='play-forward' size={32} color={canSkipForward ? 'white' : 'gray'} />
-                    </TouchableOpacity>
-
-                    <TouchableOpacity onPress={() => { stopTTS(); setIsTTSPlaying(false); }} style={styles.controlButton}>
-                        <Ionicons name='close' size={32} color='white' />
-                    </TouchableOpacity>
-                </View>
-            </View>
-        )}
-
     </View>
   );
 }
 
-const styles = StyleSheet.create ({
-    ttsOverlay: {
-        position: "absolute",
-        bottom: 120, 
-        left: 20,
-        backgroundColor: "rgba(0, 0, 0, 0.8)",
-        padding: 15,
-        borderRadius: 10,
-        alignItems: 'center',
-    },
 
-    buttonContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-    },
-
-    controlButton: {
-        marginHorizontal: 10,
-    },
-
-    ttsButton: {
-        flexDirection: "row",
-        alignItems: "center",
-        padding: 10,
-    },
-
-    ttsButtonText: {
-        color: "white",
-        marginLeft: 10,
-    }
-});
