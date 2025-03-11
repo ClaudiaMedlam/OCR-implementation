@@ -58,16 +58,36 @@ function TabLayoutContent() {
     const { word, word_id } = useLocalSearchParams();  // Get params from initial navigation
     const segments = useSegments(); // to see which part of the navigation tree is active
     const activeTab = segments[segments.length - 1] || ""; // Get the last segment - i.e. current route
+
     const [isTTSPlaying, setIsTTSPlaying] = useState(false); // for TTS
+    const [lastTTSPress, setLastTTSPress] = useState<number | null>(null); // So can register if button pressed more than once
+    const [showAlert, setShowAlert] = useState(false); // To show warning if TTS button is pressed quickly - in case device is on mute
+    const [ alertMessage, setAlertMessage] = useState(""); // ditto
 
 
     const hideTabBar = !['definition', 'morpheme'].includes(activeTab); // So that tab bar can be hidden on required pages
 
     const handleTTS = () => {
-        console.log("TTS Button Pressed");
-        setIsTTSPlaying(true);
-        triggerTTS(activeTab, ttsText);
+        const now = Date.now();
 
+        if (lastTTSPress && now - lastTTSPress < 3000) { // If button hit twice within 3 secs
+            setAlertMessage("Can't hear anything? \u{1F442}\nYour device may be on silent.")
+            if(!isTTSPlaying) { // If word has finished playing...
+                setIsTTSPlaying(true);  // .. play again
+                triggerTTS(activeTab, ttsText);
+            } else {
+                setIsTTSPlaying(false); // If word is playing, stop
+            }
+            setShowAlert(true);
+            setTimeout(() => setShowAlert(false), 2500); // Hide alert after 2.5 secs
+
+        } else {
+            console.log("TTS Button Pressed");
+            setIsTTSPlaying(true);
+            triggerTTS(activeTab, ttsText);
+        }
+        
+        setLastTTSPress(now);
     }
 
   return (
@@ -207,7 +227,7 @@ function TabLayoutContent() {
                             width: 75 
                         }}>
                             <Ionicons 
-                                name={focused ? 'skull' : 'skull-outline'} 
+                                name={focused ? 'help-circle' : 'help-circle-outline'} 
                                 color={color}
                                 size={48} 
                             />
@@ -219,8 +239,32 @@ function TabLayoutContent() {
 
         </Tabs>
 
+        {showAlert && (
+            <View style={styles.alertContainer}>
+                <Text style={styles.alertText}>{alertMessage}</Text>
+            </View>
+        )}
+
+
     </View>
   );
+
 }
+const styles = StyleSheet.create({
+    alertContainer: {
+        position: "absolute",
+        bottom: 150, // Adjust as needed
+        alignSelf: "center",
+        backgroundColor: "red",
+        padding: 10,
+        zIndex: 1000,
+        left: 10,
+        borderRadius: 10,
+    },
 
-
+    alertText: {
+        color: "white",
+        fontSize: 22,
+        fontWeight: "bold",
+    },
+});

@@ -31,19 +31,19 @@ export default function DefinitionScreen() {
   function formatPronunciation(pronunciation: string) {
     if (!pronunciation) return null;
 
-    // Remove all "*" characters and split on "**" to identify bold sections
-    const parts = pronunciation.replace(/\*/g, "").split(/(\*\*.*?\*\*)/);
+    // Splits on "*" to identify bold sections
+    const parts = pronunciation.split(/(\*.*?\*)/);
 
-    // THIS DOESN"T WORK QUITE TODO
+
     return parts.map((part, index) => {
       if (part.startsWith("*") && part.endsWith("*")) {
         return (
-          <Text key={index} style={{ fontWeight: 'bold'}}>
-            {part.slice(2, -2)} {/* Remove surrounding "**" */}
+          <Text key={index} style={{ fontFamily: 'ComicNeue-Bold'}}>
+            {part.slice(1, -1)} {/* Remove surrounding "*" */}
           </Text>
         );
       }
-      return <Text key={index}>{part}</Text>;
+      return <Text key={index}>{part.replace(/\*/g, "")}</Text>; // Removes the * characters
     });
   }
 
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
       pronunciationText: {
         fontSize: 32,
         color: '#F5F5F5',
-        fontFamily: 'ComicNeue-Bold',
+        fontFamily: 'ComicNeue-Regular',
       },
 
       proContainer: {

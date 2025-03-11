@@ -56,19 +56,7 @@ export default function MorphemeScreen() {
       
               const text = `${word}`;
               setTTStext(text);
-              // const textSections = [
-              //     `${word}:`, //Section 1
-              //     // Section 2 - part by part
-              //    `${data.morph_part1 ?? ""} ${data.part1_expl ?? ""}.
-              //     ${data.morph_part2 ?? ""} ${data.part2_expl ?? ""}.
-              //     ${data.morph_part3 ?? ""} ${data.part3_expl ?? ""}.
-              //     ${data.morph_part4 ?? ""} ${data.part4_expl ?? ""}.
-              //     ${data.morph_part5 ?? ""} ${data.part5_expl ?? ""}`,
 
-              //     `${data.summary ?? ""}` // Section 3
-              // ].filter(section => section.trim() !== "");
-      
-              // setTTStext(textSections); // Store in context
             } else {
               setError("explanation is not found");
             }
@@ -132,7 +120,7 @@ export default function MorphemeScreen() {
 
                       <View style={styles.columnRight}>
                           <Text style={styles.defText}>
-                              {expl}
+                              {expl && formatItalics(expl)}
                           </Text>
                       </View>
                                   
@@ -141,14 +129,29 @@ export default function MorphemeScreen() {
               })}
 
             <View style={styles.defContainer}>
-              <Text style={styles.defText}>{morpheme?.summary}</Text>
+              <Text style={styles.defText}>{morpheme?.summary && formatItalics(morpheme?.summary)}</Text>
             </View>
             
             </View>
             
         </View>
     )
-  }
+}
+
+function formatItalics(text: string) {
+  const parts = text.split(/(\*.*?\*)/);
+
+  return parts.map((part, index) => {
+    if (part.startsWith("*") && part.endsWith("*")) {
+      return (
+        <Text key={index} style={{ fontFamily: 'ComicNeue-Italic'}}>
+          {part.slice(1, -1)} 
+        </Text>
+      );
+    }
+    return <Text key={index}>{part}</Text>;
+  });
+}
 
 const styles = StyleSheet.create({
 
@@ -163,8 +166,8 @@ const styles = StyleSheet.create({
     
       word: {
         fontSize: 32,
-        color: '#F5F5F5',
-        fontFamily: 'ComicNeue-Bold',
+        color: '#000',
+        fontFamily: 'ComicNeue-Regular',
       },
     
       wordContainer: {
@@ -182,7 +185,7 @@ const styles = StyleSheet.create({
       pronunciationText: {
         fontSize: 32,
         color: '#F5F5F5',
-        fontFamily: 'ComicNeue-Bold',
+        fontFamily: 'ComicNeue-Regular',
       },
 
       proContainer: {
