@@ -228,7 +228,7 @@ export default function Index() {
     <GestureHandlerRootView style={styles.container}>
       {/* <SafeAreaView> */}
         <View style={styles.textContainer}> 
-          <Text style={styles.text}>Move the yellow box over a word</Text>
+          <Text style={styles.text}>Move the yellow box over a word and</Text>
           <Text style={styles.textEmphasis}>Tap the screen to look it up</Text>
         </View>
 
@@ -364,10 +364,11 @@ const styles = StyleSheet.create({
   },
 
   text: {
-    fontSize: 24,
+    fontSize: 22,
     color: '#004D40',
     fontFamily: "ComicNeue-Regular",
     textAlign: 'center',
+    marginBottom: 10,
   },
 
   textEmphasis: {

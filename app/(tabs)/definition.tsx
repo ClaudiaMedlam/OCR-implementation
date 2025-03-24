@@ -57,7 +57,7 @@ export default function DefinitionScreen() {
     const fetchDefinition = async () => {
       try {
         const response = await fetch(`http://192.168.1.150:5050/definition/${word_id}`); // at home
-        // const response = await fetch(`https://6be2-158-223-122-234.ngrok-free.app/definition/${word_id}`); // at uni
+        // const response = await fetch(`[enter temporary ngkok link here]/definition/${word_id}`); // at uni
         const data = await response.json();
   
         if (response.ok && data) {
@@ -150,9 +150,12 @@ export default function DefinitionScreen() {
                       
                   </View>
 
-                  <View style={styles.defContainer}>
+                  {definition?.part2_def && (
+                    <View style={styles.defContainer}>
                       <Text style={styles.defText}>{definition?.part2_def}</Text>
-                  </View>
+                    </View>
+                  )}
+                  
               </View>
             </ScrollView>
             
@@ -284,6 +287,7 @@ const styles = StyleSheet.create({
         flexGrow: 1,
         marginTop: 10,
         maxHeight: '65%',
+        minHeight: '65%',
       },
 
       scrollContent: {

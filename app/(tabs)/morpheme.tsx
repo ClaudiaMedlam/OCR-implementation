@@ -46,7 +46,7 @@ export default function MorphemeScreen() {
         const fetchMorpheme = async () => {
           try {
             const response = await fetch(`http://192.168.1.150:5050/explanation/${word_id}`); // at home
-            // const response = await fetch(`https://6be2-158-223-122-234.ngrok-free.app/explanation/${word_id}`); // at uni
+            // const response = await fetch(`[enter temporary ngkok link here]/explanation/${word_id}`); // at uni
             const data = await response.json();
       
             if (response.ok && data) {
