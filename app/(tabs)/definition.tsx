@@ -2,9 +2,11 @@ import { Text, View, StyleSheet, TouchableOpacity, Modal } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import React, { useState, useEffect, useCallback } from 'react';
 import { useLocalSearchParams, useFocusEffect } from 'expo-router';
+import { ScrollView } from 'react-native-gesture-handler';
 
 import { stopTTS } from '@/utils/TTSHelper';
 import { useTTS } from '@/utils/TTSContext';
+
 
 
 // Define the interface
@@ -30,6 +32,9 @@ export default function DefinitionScreen() {
 
   function formatPronunciation(pronunciation: string) {
     if (!pronunciation) return null;
+
+    // Remove all spaces from the string
+    pronunciation = pronunciation.replace(/\s+/g, '');
 
     // Splits on "*" to identify bold sections
     const parts = pronunciation.split(/(\*.*?\*)/);
@@ -109,41 +114,48 @@ export default function DefinitionScreen() {
                     
             </View>
             
-            {/* Definition section */}
-            <View style={styles.fullDefContainer}>
-                <View style={styles.defContainer}>
-                    <Text style={styles.defText}>{definition?.part1_def}</Text>
-                </View>
-
-                <View style={styles.defContainer}>
-                  <Text style={styles.defText}>For example: </Text>
-                  <View style={styles.exampleContainer}>
-                    {[1, 2, 3, 4].map((num) => {
-                        const example = definition?.[`example${num}`];
-
-                        if (!example) return null; // Skip empty examples
-                      
-                        return (
-                          <View key={num} style={styles.exampleRow}>
-                              <View style={styles.columnLeft}>
-                                <Text style={styles.defText}>{'\u2022'}</Text>
-                              </View>
-        
-                              <View style={styles.columnRight}>
-                                  <Text style={styles.defText}>{example}</Text>
-                              </View>
-                                          
-                          </View>
-                        )
-                      })}
+            {/* Scrollable Definition section */}
+            <ScrollView 
+              style={styles.scrollView} 
+              contentContainerStyle={styles.scrollContent}
+              showsVerticalScrollIndicator={false}
+            >
+              <View style={styles.fullDefContainer}>
+                  <View style={styles.defContainer}>
+                      <Text style={styles.defText}>{definition?.part1_def}</Text>
                   </View>
-                    
-                </View>
 
-                <View style={styles.defContainer}>
-                    <Text style={styles.defText}>{definition?.part2_def}</Text>
-                </View>
-            </View>
+                  <View style={styles.defContainer}>
+                    <Text style={styles.defText}>For example: </Text>
+                    <View style={styles.exampleContainer}>
+                      {[1, 2, 3, 4].map((num) => {
+                          const example = definition?.[`example${num}`];
+
+                          if (!example) return null; // Skip empty examples
+                        
+                          return (
+                            <View key={num} style={styles.exampleRow}>
+                                <View style={styles.columnLeft}>
+                                  <Text style={styles.defText}>{'\u2022'}</Text>
+                                </View>
+          
+                                <View style={styles.columnRight}>
+                                    <Text style={styles.defText}>{example}</Text>
+                                </View>
+                                            
+                            </View>
+                          )
+                        })}
+                    </View>
+                      
+                  </View>
+
+                  <View style={styles.defContainer}>
+                      <Text style={styles.defText}>{definition?.part2_def}</Text>
+                  </View>
+              </View>
+            </ScrollView>
+            
             
         </View>
     )
@@ -231,9 +243,9 @@ const styles = StyleSheet.create({
 
       fullDefContainer: {
         width: '100%',
-        flex: 6,
         backgroundColor: '#E0F2F1',
-        padding: 10,
+        paddingLeft: 10,
+        paddingRight: 10,
       },
 
       defContainer: {
@@ -245,7 +257,7 @@ const styles = StyleSheet.create({
         paddingBottom: 10,
         paddingLeft: 20,
         paddingRight: 20,
-        marginTop: 10,
+        marginBottom: 10,
         minHeight: 100,
       },
 
@@ -266,6 +278,16 @@ const styles = StyleSheet.create({
       columnRight: {
         flex: 6, // Takes 2 part of the row
 
+      },
+
+      scrollView: {
+        flexGrow: 1,
+        marginTop: 10,
+        maxHeight: '65%',
+      },
+
+      scrollContent: {
+        // paddingBottom: 20,
       },
 
 })

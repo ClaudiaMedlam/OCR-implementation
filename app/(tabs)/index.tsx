@@ -228,7 +228,8 @@ export default function Index() {
     <GestureHandlerRootView style={styles.container}>
       {/* <SafeAreaView> */}
         <View style={styles.textContainer}> 
-          <Text style={styles.text}>Tap the word you want to look up:</Text>
+          <Text style={styles.text}>Move the yellow box over a word</Text>
+          <Text style={styles.textEmphasis}>Tap the screen to look it up</Text>
         </View>
 
         <View style={styles.imageContainer}>
@@ -261,7 +262,11 @@ export default function Index() {
             </View>
           )}
 
-        <TouchableOpacity style={styles.focusBox} onPress={handleFocusBoxTap} activeOpacity={1} />
+        <TouchableOpacity style={styles.focusBox} onPress={handleFocusBoxTap} activeOpacity={1}>
+          {/* Crosshairs */}
+          <View style={styles.crosshairVertical} />
+          <View style={styles.crosshairHorizontal} />
+        </TouchableOpacity>
 
         </View>
 
@@ -294,6 +299,7 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 5, 
     padding: 'auto',
+    overflow: 'hidden',
   },
 
   // Yellow Focus Box that adjusts based on tap
@@ -310,11 +316,33 @@ const styles = StyleSheet.create({
     transform: [{ translateX: -100 }, { translateY: -30 }], // Center the box
   },
 
+  crosshairVertical: {
+    position: 'absolute',
+    width: 2,
+    height: '50%',
+    backgroundColor: '#FFB300',
+    top: '25%',
+    left: '50%',
+    transform: [{ translateX: -1 }],
+    opacity: 0.5,
+  },
+  
+  crosshairHorizontal: {
+    position: 'absolute',
+    height: 2,
+    width: '15%',
+    backgroundColor: '#FFB300',
+    top: '50%',
+    left: '42.5%',
+    transform: [{ translateY: -1 }],
+    opacity: 0.5,
+  },
+
   camera: {
     flex: 1,
     width: '100%',
     height: '100%',
-    borderRadius: 15,
+
   },
 
   webCamera: {
@@ -336,9 +364,17 @@ const styles = StyleSheet.create({
   },
 
   text: {
-    fontSize: 20,
+    fontSize: 24,
     color: '#004D40',
     fontFamily: "ComicNeue-Regular",
+    textAlign: 'center',
+  },
+
+  textEmphasis: {
+    fontSize: 24,
+    color: '#004D40',
+    fontFamily: "ComicNeue-Bold",
+    textAlign: 'center',
   },
 
   word: {

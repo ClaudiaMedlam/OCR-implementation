@@ -2,6 +2,7 @@ import { Text, View, StyleSheet, TouchableOpacity, Modal } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import React, { useState, useEffect, useCallback } from 'react';
 import { useLocalSearchParams, useFocusEffect } from 'expo-router';
+import { ScrollView } from 'react-native-gesture-handler';
 
 import { triggerTTS, stopTTS } from '@/utils/TTSHelper';
 import { TTSProvider, useTTS } from '@/utils/TTSContext';
@@ -104,35 +105,45 @@ export default function MorphemeScreen() {
                     
             </View>
             
+            {/* Scrollable Definition section */}
+            <ScrollView 
+              style={styles.scrollView} 
+              contentContainerStyle={styles.scrollContent}
+              showsVerticalScrollIndicator={false}
+            >
+              <View style={styles.fullDefContainer}>
+                {[1, 2, 3, 4, 5].map((num) => {
+                  const part = morpheme?.[`morph_part${num}`];
+                  const expl = morpheme?.[`part${num}_expl`]?.replace(/\/\//g, "\n");
 
-            <View style={styles.fullDefContainer}>
-              {[1, 2, 3, 4, 5].map((num) => {
-                const part = morpheme?.[`morph_part${num}`];
-                const expl = morpheme?.[`part${num}_expl`]?.replace(/\/\//g, "\n");
+                  if (!part && !expl) return null; // Don't show box if both are missing
 
-                if (!part && !expl) return null; // Don't show box if both are missing
+                  return (
+                    <View key={num} style={styles.defContainer}>
+                        <View style={styles.columnLeft}>
+                          <Text style={styles.defText}>{part}:</Text>
+                        </View>
 
-                return (
-                  <View key={num} style={styles.defContainer}>
-                      <View style={styles.columnLeft}>
-                        <Text style={styles.defText}>{part}:</Text>
-                      </View>
+                        <View style={styles.columnRight}>
+                            <Text style={styles.defText}>
+                                {expl && formatItalics(expl)}
+                            </Text>
+                        </View>
+                                    
+                    </View>
+                  )
+                })}
 
-                      <View style={styles.columnRight}>
-                          <Text style={styles.defText}>
-                              {expl && formatItalics(expl)}
-                          </Text>
-                      </View>
-                                  
-                  </View>
-                )
-              })}
-
-            <View style={styles.defContainer}>
-              <Text style={styles.defText}>{morpheme?.summary && formatItalics(morpheme?.summary)}</Text>
-            </View>
+              {morpheme?.summary && (
+                <View style={styles.defContainer}>
+                  <Text style={styles.defText}>{formatItalics(morpheme?.summary)}</Text>
+                </View>
+              )}
             
-            </View>
+            
+              </View>
+            </ScrollView>
+            
             
         </View>
     )
@@ -240,7 +251,7 @@ const styles = StyleSheet.create({
       },
 
       defText: {
-        fontSize: 18,
+        fontSize: 20,
         color: '#E0F2F1',
         fontFamily: "ComicNeue-Regular",
       },
@@ -257,9 +268,9 @@ const styles = StyleSheet.create({
 
       fullDefContainer: {
         width: '100%',
-        flex: 6,
         backgroundColor: '#E0F2F1',
-        padding: 10,
+        paddingLeft: 10,
+        paddingRight: 10,
       },
 
       defContainer: {
@@ -271,9 +282,21 @@ const styles = StyleSheet.create({
         paddingBottom: 10,
         paddingLeft: 20,
         paddingRight: 20,
-        marginTop: 10,
+        marginBottom: 10,
         minHeight: 100,
         flexDirection: 'row',
+      },
+
+      scrollView: {
+        flexGrow: 1,
+        marginTop: 10,
+        maxHeight: '65%',
+        minHeight: '65%',
+        width: '100%',
+      },
+
+      scrollContent: {
+        // paddingBottom: 20,
       },
 
 
