@@ -43,6 +43,7 @@ export default function Index() {
   const [cameraLayoutHeight, setCameraLayoutHeight] = useState<number | null>(null);
   const [cameraLayoutWidth, setCameraLayoutWidth] = useState<number | null>(null);
   const [showAppOptions, setShowAppOptions] = useState<boolean>(false);
+  const [buttonLayout, setButtonLayout] = useState<'single' | 'double'>('single'); // default to one button, bottom middle
 
   // Image and OCR
   const [selectedImage, setSelectedImage] = useState<string | undefined>(undefined);
@@ -74,37 +75,29 @@ export default function Index() {
 
   // Animation for buttons
 
-  const pulseAnimA = useRef(new Animated.Value(1)).current;
-  const pulseAnimB = useRef(new Animated.Value(1)).current;
-  const pulseAnimC = useRef(new Animated.Value(1)).current;
-  const pulseAnimD = useRef(new Animated.Value(1)).current;
+  const gleamAnim = useRef(new Animated.Value(-100)).current; // tracks the position of the gleam across the button
+
 
   useEffect(() => {
-    const startPulse = ( anim: Animated.Value, delay: number ) => {
+    const loop = Animated.loop(
       Animated.sequence([
-        Animated.delay(delay),
-        Animated.loop(
-          Animated.sequence([
-            Animated.timing(anim, {
-              toValue: 1.2,
-              duration: 800,
-              useNativeDriver: true,
-            }),
-            Animated.timing(anim, {
-              toValue: 1,
-              duration: 800,
-              useNativeDriver: true,
-            }),
-          ])
-        )
-      ]).start();
-    }
-
-    startPulse(pulseAnimA, 0);
-    startPulse(pulseAnimB, 200);
-    startPulse(pulseAnimC, 400);
-    startPulse(pulseAnimD, 600);
-
+        Animated.timing(gleamAnim, {
+          toValue: 100,
+          duration: 1200,
+          useNativeDriver: true,
+        }),
+        Animated.delay(5000), // Wait 5 seconds before next shimmer
+        Animated.timing(gleamAnim, {
+          toValue: -50,
+          duration: 0, // Instantly reset to start
+          useNativeDriver: true,
+        }),
+      ])
+    );
+  
+    loop.start();
+  
+    return () => loop.stop(); // Clean up on unmount
   }, []);
   
   // Permissions
@@ -324,20 +317,6 @@ export default function Index() {
     const rightX = vertices[2]?.x ?? 0;
     return (leftX + rightX) /2;
   }
-
-  // Helper for animation
-  const dotStyle = ({ top, left, bottom, right, translate }: PositionProps) => ({
-    width: 6,
-    height: 6,
-    backgroundColor: '#FF8A80',
-    borderRadius: 3,
-    position: 'absolute',
-    top,
-    left,
-    bottom,
-    right,
-    transform: [{ translateX: translate ?? 0 }, { translateY: translate ?? 0 }],
-  });
   
   return (
     <GestureHandlerRootView style={styles.container}>
@@ -399,33 +378,30 @@ export default function Index() {
 
         </View>
 
-        <TouchableOpacity 
-            style={[
-              styles.thumbButtonWrapper, // this contains static styles
-              { bottom: '25%', left: 0 } // left, 3/4 way down screen
-            ]} 
-            onPress={handleFocusBoxTap} 
-            activeOpacity={0.8}>
-              <View style={styles.thumbButtonInner}>
+        <View style={{ paddingVertical: 10 }}>
+          <TouchableOpacity
+            onPress={() =>
+              setButtonLayout((prev) => (prev === 'single' ? 'double' : 'single'))
+            }
+            style={{
+              backgroundColor: '#E0F2F1',
+              padding: 10,
+              borderRadius: 10,
+              borderWidth: 1,
+              borderColor: '#80CBC4',
+              left: -150,
+              bottom: -50,
 
-              </View>
-        </TouchableOpacity>
+            }}
+          >
+            <Text style={{ color: '#004D40', fontFamily: 'ComicNeue-Bold' }}>
+              {buttonLayout === 'single' ? 'X' : 'X'}
+            </Text>
+          </TouchableOpacity>
+        </View>
 
-
-        <TouchableOpacity 
-            style={[
-              styles.thumbButtonWrapper, // this contains static styles
-              { bottom: '25%', right: 0 } // right, 3/4 way down screen
-            ]} 
-            onPress={handleFocusBoxTap} 
-            activeOpacity={1}>
-              <View style={styles.thumbButtonInner}>
-
-              </View>
-        </TouchableOpacity>
-
-
-        <TouchableOpacity 
+        {buttonLayout === 'single' ? (
+          <TouchableOpacity 
             style={[
               styles.thumbButtonWrapper, // this contains static styles
               { bottom: '10%' } // centre, bottom of screen
@@ -433,24 +409,60 @@ export default function Index() {
             onPress={handleFocusBoxTap} 
             activeOpacity={1}>
               <View style={styles.thumbButtonInner}>
-                <Animated.View style={[styles.pulseShapeTop, { transform: [{ scale: pulseAnimA }] }]}>
-                <View style={styles.filledDotWhite} />
+                <Animated.View style={styles.gleamWrapper}>
+                  <Animated.View style={[
+                    styles.gleamStripe,
+                    {transform: [{ translateX: gleamAnim }, { rotate: '20deg' }] },
+                  ]}
+                  />
                 </Animated.View>
-
-                <Animated.View style={[styles.pulseShapeRight, { transform: [{ scale: pulseAnimB }] }]}>
-                  <View style={styles.filledDotPink} />
-                </Animated.View>
-
-                <Animated.View style={[styles.pulseShapeBottom, { transform: [ { scale: pulseAnimC }] }]}>
-                  <View style={styles.filledDotBlue} />
-                </Animated.View>
-
-                <Animated.View style={[styles.pulseShapeLeft, { transform: [{ scale: pulseAnimD }] }]}>
-                <View style={styles.filledDotGreen} />
-                </Animated.View>
-
               </View>
-        </TouchableOpacity>
+          </TouchableOpacity>
+
+        ) : (
+          <>
+            <TouchableOpacity 
+              style={[
+                styles.thumbButtonWrapper, // this contains static styles
+                { bottom: '25%', left: 0 } // left, 3/4 way down screen
+              ]} 
+              onPress={handleFocusBoxTap} 
+              activeOpacity={0.8}>
+              <View style={styles.thumbButtonInner}>
+                <Animated.View style={styles.gleamWrapper}>
+                  <Animated.View style={[
+                    styles.gleamStripe,
+                    {transform: [{ translateX: gleamAnim }, { rotate: '20deg' }] },
+                  ]}
+                  />
+                </Animated.View>
+              </View>
+             </TouchableOpacity>
+
+
+            <TouchableOpacity 
+              style={[
+                styles.thumbButtonWrapper, // this contains static styles
+                { bottom: '25%', right: 0 } // right, 3/4 way down screen
+              ]} 
+              onPress={handleFocusBoxTap} 
+              activeOpacity={1}>
+              <View style={styles.thumbButtonInner}>
+                <Animated.View style={styles.gleamWrapper}>
+                  <Animated.View style={[
+                    styles.gleamStripe,
+                    {transform: [{ translateX: gleamAnim }, { rotate: '20deg' }] },
+                  ]}
+                  />
+                </Animated.View>
+              </View>
+            </TouchableOpacity>
+          </>
+        )}
+
+
+
+
 
 
     </GestureHandlerRootView>
@@ -633,6 +645,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     position: 'absolute',
     backgroundColor: '#FFB30040',
+    overflow: 'hidden',
     // zIndex: 10,
   },
   
@@ -643,75 +656,27 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFD269',
     borderColor: '#FFB300',
     borderWidth: 2,
+    position: 'relative',
   },
 
-  pulseShapeTop: {
+
+  gleamWrapper: {
     position: 'absolute',
-    top: -15,
-    left: 35,
+    top: -30,
+    left: 0,
+    height: 120,
+    width: '100%',
+    overflow: 'hidden',
   },
 
-  pulseShapeRight: {
+  gleamStripe: {
     position: 'absolute',
-    right: -15,
-    top: 35,
-  },
-
-  pulseShapeBottom: {
-    position: 'absolute',
-    bottom: -15,
-    left: 35,
-
-  },
-
-  pulseShapeLeft: {
-    position: 'absolute',
-    left: -15,
-    top: 35,
-  },
-
-  pulseShapeStar: {
-    position: 'absolute',
-    top: -5,
-    right: 0,
-
-  },
-
-  filledDotWhite: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: 'white',
-    borderColor: '#FFB300',
-    borderWidth: 2,
-  },
-
-
-  filledDotPink: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: '#FF8A80',
-    borderColor: '#FFB300',
-    borderWidth: 2,
-  },
-
-  filledDotBlue: {
-    width: 10,
-    height: 10,
-    borderRadius: 10,
-    backgroundColor: '#4FC3F7',
-    borderColor: '#FFB300',
-    borderWidth: 3,
-  },
-
-  filledDotGreen: {
-    width: 10,
-    height: 10,
-    borderRadius: 10,
-    backgroundColor: '#26969A',
-    borderColor: '#FFB300',
-    borderWidth: 3,
+    top: 0,
+    left: 0, // stay fixed, movement is via translateX
+    height: 500,
+    width: 20,
+    backgroundColor: '#E0F2F14D',
+    transform: [{ rotate: '20deg' }],   
   }
 
 
