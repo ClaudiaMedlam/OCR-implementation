@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
       },
 
       columnRight: {
-        flex: 6, // Takes 2 part of the row
+        flex: 8, // Takes remaining part of the row
 
       },
 

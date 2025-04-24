@@ -1,7 +1,7 @@
-import { Text, View, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity, Platform, Image } from 'react-native';
-import React, { useState, useRef, useEffect } from 'react';
+import { Text, View, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity, Platform, Image, Dimensions, Animated, Easing } from 'react-native';
+import React, { useState, useRef, useEffect, createFactory } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import * as ImageManipulator from 'expo-image-manipulator';
@@ -11,8 +11,26 @@ import { useFocusEffect } from '@react-navigation/native';
 import Button from '@/components/Button'; 
 import ImageViewer from '@/components/ImageViewer';
 import { funWords, properNouns } from "@/constants/wordLists";
+import { Ionicons } from '@expo/vector-icons';
 
 const PlaceholderImage = require("@/assets/images/Slime-snapshot.jpeg");
+
+// For defining the word type to be sent for OCR
+type OCRAnnotation = {
+  description: string;
+  boundingPoly?: {
+    vertices: { y?: number, x?: number }[];
+  };
+};
+
+// For position props for animation
+type PositionProps = {
+  top?: number;
+  left?: number;
+  bottom?: number;
+  right?: number;
+  translate?: [string, number]; // or whatever shape you're using for transform
+};
 
 const GOOGLE_VISION_API_KEY = "AIzaSyC78EQJEDEwiCWaV_cwYU9vjOTvvlSFWX0"; // ADDED FOR OCR
 
@@ -20,21 +38,76 @@ export default function Index() {
   const router = useRouter(); // reroutes to next page
   const [permission, requestCameraPermission] = useCameraPermissions(); // To gain user permission to use camera
   const cameraRef = useRef<CameraView | null>(null);
+
+  // Layout and Flow
+  const [cameraLayoutHeight, setCameraLayoutHeight] = useState<number | null>(null);
+  const [cameraLayoutWidth, setCameraLayoutWidth] = useState<number | null>(null);
+  const [showAppOptions, setShowAppOptions] = useState<boolean>(false);
+
+  // Image and OCR
   const [selectedImage, setSelectedImage] = useState<string | undefined>(undefined);
   const [croppedImage, setCroppedImage] = useState<string | null>(null); // ADDED FOR OCR STEP 2 CROPPING
-  const [showAppOptions, setShowAppOptions] = useState<boolean>(false);
   const [result, setResult] = useState<string | null>(null);
-
   const [extractedText, setExtractedText] = useState<string | null>(null); // ADDED FOR OCR
-  const [warningText, setWarningText] = useState<string | null>(null);
   const [loading, setLoading] = useState(false); // ADDED FOR OCR
+  const [warningText, setWarningText] = useState<string | null>(null);
 
+  // Layout Dimensions
+  const insets = useSafeAreaInsets(); // To use device dimensions as opposed to allow for flexible use (insets.top -> height of safe area at top for notch/status bar)
+  const screenHeight = Dimensions.get('window').height; // gives total height of the device screen
+  const HEADER_HEIGHT = 120; // This should match the header height defined in (tabs)/_layout (currently 120)
+  const cameraAreaHeight = screenHeight - insets.top - HEADER_HEIGHT; // This is the visible camera area below the header
+  
+  // N.B. Following styles added dynamically (not in stylesheet):
+  const cameraContainerStyle = {
+    ...styles.imageContainer,
+    height: cameraAreaHeight,
+  }
+  const focusBoxTop = cameraLayoutHeight ? (cameraLayoutHeight / 2 - 30) : 0; // focus box for the word capture is 60px tall so this vertical offset centres the box (or defaults to 0)
+
+  // Effects
   useFocusEffect(
     React.useCallback(() => {
       setLoading(false); // Reset loading state when user returns to page
     }, [])
   );
 
+  // Animation for buttons
+
+  const pulseAnimA = useRef(new Animated.Value(1)).current;
+  const pulseAnimB = useRef(new Animated.Value(1)).current;
+  const pulseAnimC = useRef(new Animated.Value(1)).current;
+  const pulseAnimD = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    const startPulse = ( anim: Animated.Value, delay: number ) => {
+      Animated.sequence([
+        Animated.delay(delay),
+        Animated.loop(
+          Animated.sequence([
+            Animated.timing(anim, {
+              toValue: 1.2,
+              duration: 800,
+              useNativeDriver: true,
+            }),
+            Animated.timing(anim, {
+              toValue: 1,
+              duration: 800,
+              useNativeDriver: true,
+            }),
+          ])
+        )
+      ]).start();
+    }
+
+    startPulse(pulseAnimA, 0);
+    startPulse(pulseAnimB, 200);
+    startPulse(pulseAnimC, 400);
+    startPulse(pulseAnimD, 600);
+
+  }, []);
+  
+  // Permissions
   if( !permission) {
     //Camera permissions are still loading
     return <View />
@@ -50,6 +123,7 @@ export default function Index() {
     )
   }
 
+  // Handlers (Event + Image Processing)
   // Handle tap in box to select word image (in "freeze frame")
   const handleFocusBoxTap = async () => {
     if (!cameraRef.current) {
@@ -84,32 +158,48 @@ export default function Index() {
     Image.getSize(
       uri,
       (width, height) => {
-       console.log(`Image Dimernsions: Width = ${width}, Height = ${height}`);
-      }
+        console.log(`Original image: ${width}x${height}`);
+      },
+      (error) => console.error("❌ Failed to get image size:", error)
     );
   };
 
   // ADDED FOR OCR STEP 2 CROPPING
   const cropImage = async (uri: string) => {
     try {
+
+      const targetWidth = cameraLayoutWidth ?? 351; // Use measured width or fallback to 351 (imageContainer size on iPhone 11)
+      const targetHeight = cameraAreaHeight ?? 460; // Use measured height or fallback to 460 (imageContainer size on iPhone 11)
+
       const resizedImage = await ImageManipulator.manipulateAsync(
         uri,
-        [{resize: {width: 500 }}],
+        [{resize: {width: targetWidth, height: targetHeight }}],
         { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG}
       );
 
       console.log(`Resized image: ${resizedImage.width} x ${resizedImage.height}`);
 
+      const cropHeight = 60; // as per focusbox height
+      const cropWidth = 200; // as per focusbox width
+      const originX = (targetWidth - cropWidth) / 2;
+      const originY = (targetHeight - cropHeight) / 2;
+
       const manipResult = await ImageManipulator.manipulateAsync(
         resizedImage.uri,
-        [{ crop: { height: 60, originX: 150, originY: 343, width: 200 } }], // Adjust as nec
+        [{ crop: { 
+            originX, // 
+            originY, 
+            height: cropHeight,
+            width: cropWidth } }],
         { compress: 1, format: ImageManipulator.SaveFormat.JPEG, base64: true}
       );
 
+      const imageMidY = manipResult.height / 2; // For finding the centered word
+      const imageMidX = manipResult.width / 2; // For finding the centered word
       setCroppedImage(manipResult.uri);
 
       if(manipResult.base64) {
-        processImage(manipResult.base64);
+        processImage(manipResult.base64, imageMidY, imageMidX);
       }
     } catch (error) {
       console.error("Error cropping image: ", error);
@@ -117,7 +207,7 @@ export default function Index() {
   };
 
   // ADDED FOR OCR
-  const processImage = async (base64: string | undefined) => {
+  const processImage = async (base64: string | undefined, imageMidY: number, imageMidX: number) => {
     if (!base64) return;
     setLoading(true);
     console.log("Sending image to Google Vision API...")
@@ -144,45 +234,42 @@ export default function Index() {
       const result = await response.json();
 
 
-      if(result.responses && result.responses[0]) {
+      if (result.responses && result.responses[0]) {
         if( result.responses[0].fullTextAnnotation) {
-          const extractedWord = result.responses[0].fullTextAnnotation.text.trim();
+          const annotations = result.responses[0].textAnnotations?.slice(1) || []; // textAnnotations = array returned by Google Vision API ; slice(1) gives the individual words in the box or an empty array
+        
+          let middleWord = null; // This is the word we're targetting, that is in the centre of the focusBox
+          let smallestVertDiff = Infinity; // Keeps track of the closest vertical distance from the image's centre
+          let smallestHorDiff = Infinity; // Keeps track of the closest horizontal distance from the image's centre
 
-          // Following process to ensure only one word chosen:
-          // Split text into words
-          let words = extractedWord
-          .split(/\s+/) // Split by space or new line
-          .filter((word: string) => /^[a-zA-Z]+$/.test(word));
+          annotations.forEach((annotation: OCRAnnotation) => {
+            const vertices = annotation.boundingPoly?.vertices; // retrieves the list of 4 corner points of the 'box' around each word
 
-          // Error if numbers
-          if (words.length === 0) {
-            setWarningText("I can't read numbers! \u{1F916}\nTry scanning a word instead.")
-            console.warn("⚠️ Only numbers detected.")
-            setLoading(false);
+            if(vertices && vertices.length >=4) { // assuming it has 4 vertices...
+              const centerY = getVerticalCenter(vertices); // ...calculates the vertical centre of the word...
+              const centerX = getHorizontalCenter(vertices); //
+              const vertDiff = Math.abs(centerY - imageMidY); //...and measures distance from image vertical midpoint
+              const horiDiff = Math.abs(centerX - imageMidX); //...and measures distance from image vertical midpoint
+
+              if(vertDiff < smallestVertDiff) { // update closestWord if this is closer to the centre than any previous ones
+                smallestVertDiff = vertDiff;
+                if(horiDiff < smallestHorDiff) {
+                  smallestHorDiff = horiDiff;
+                  middleWord = annotation.description;
+                }
+              }
+              
+            }
+          });
+
+          if(middleWord) {
+            console.log("Closest word to centre of box:", middleWord);
+            router.push({pathname:"/lookup", params:{word: middleWord}});
             return;
           }
 
-          // Find the midpoint character
-          const midpoint = Math.floor(extractedWord.length/2);
 
-          // Find the word that covers the midpoint character
-          let charCount = 0;
-          let selectedWord = words[0];
-
-          for (let word of words) {
-            charCount += word.length + 1; // +1 accounts for spaces
-            if (charCount >= midpoint) {
-              selectedWord = word;
-              break;
-            }
-          }
-
-          console.log('Selected word = ', selectedWord);
-
-          router.push({ pathname: "/lookup", params: { word: selectedWord } });
-          return;
-        
-        } 
+        }
         // Handle case where fullTextAnnotation is missing but textAnnotation exists - e.g. partial or missing or nonsense words
         else if (result.responses[0].textAnnotations && result.responses[0].textAnnotations.length > 1) {
 
@@ -224,15 +311,51 @@ export default function Index() {
     setWarningText(null);
   };
 
+  // OCR Helper function to get vertical centre of bounding box
+  const getVerticalCenter = (vertices: {y?: number}[]): number => {
+    const topY = vertices[0]?.y ?? 0;
+    const bottomY = vertices[2]?.y ?? 0;
+    return (topY + bottomY) /2;
+  }
+
+  // Helper function to get horiztonal centre of bounding box
+  const getHorizontalCenter = (vertices: {x?: number}[]): number => {
+    const leftX = vertices[0]?.x ?? 0;
+    const rightX = vertices[2]?.x ?? 0;
+    return (leftX + rightX) /2;
+  }
+
+  // Helper for animation
+  const dotStyle = ({ top, left, bottom, right, translate }: PositionProps) => ({
+    width: 6,
+    height: 6,
+    backgroundColor: '#FF8A80',
+    borderRadius: 3,
+    position: 'absolute',
+    top,
+    left,
+    bottom,
+    right,
+    transform: [{ translateX: translate ?? 0 }, { translateY: translate ?? 0 }],
+  });
+  
   return (
     <GestureHandlerRootView style={styles.container}>
       {/* <SafeAreaView> */}
         <View style={styles.textContainer}> 
-          <Text style={styles.text}>Move the yellow box over a word and</Text>
-          <Text style={styles.textEmphasis}>Tap the screen to look it up</Text>
+          <Text style={styles.text}>Line up a word in the yellow box and</Text>
+          <Text style={styles.textEmphasis}>Tap a button to look it up</Text>
         </View>
 
-        <View style={styles.imageContainer}>
+        <View 
+          style={cameraContainerStyle}
+          // When camera container is rendered, this captures its actual height & width (for image resizing dynamically across different screen sizes/types):
+          onLayout={(event) => {
+            const { height, width } = event.nativeEvent.layout;
+            setCameraLayoutHeight(height);
+            setCameraLayoutWidth(width);
+          }}
+        >
         {Platform.OS === 'web' ? (
                 // Mirrors the camera if front facing on a computer
                 <CameraView 
@@ -262,13 +385,73 @@ export default function Index() {
             </View>
           )}
 
-        <TouchableOpacity style={styles.focusBox} onPress={handleFocusBoxTap} activeOpacity={1}>
+        <TouchableOpacity 
+            style={[
+              styles.focusBox, // this contains static styles
+              { top: focusBoxTop } // dynamic placement
+            ]} 
+            onPress={handleFocusBoxTap} 
+            activeOpacity={1}>
           {/* Crosshairs */}
           <View style={styles.crosshairVertical} />
           <View style={styles.crosshairHorizontal} />
         </TouchableOpacity>
 
         </View>
+
+        <TouchableOpacity 
+            style={[
+              styles.thumbButtonWrapper, // this contains static styles
+              { bottom: '25%', left: 0 } // left, 3/4 way down screen
+            ]} 
+            onPress={handleFocusBoxTap} 
+            activeOpacity={0.8}>
+              <View style={styles.thumbButtonInner}>
+
+              </View>
+        </TouchableOpacity>
+
+
+        <TouchableOpacity 
+            style={[
+              styles.thumbButtonWrapper, // this contains static styles
+              { bottom: '25%', right: 0 } // right, 3/4 way down screen
+            ]} 
+            onPress={handleFocusBoxTap} 
+            activeOpacity={1}>
+              <View style={styles.thumbButtonInner}>
+
+              </View>
+        </TouchableOpacity>
+
+
+        <TouchableOpacity 
+            style={[
+              styles.thumbButtonWrapper, // this contains static styles
+              { bottom: '10%' } // centre, bottom of screen
+            ]} 
+            onPress={handleFocusBoxTap} 
+            activeOpacity={1}>
+              <View style={styles.thumbButtonInner}>
+                <Animated.View style={[styles.pulseShapeTop, { transform: [{ scale: pulseAnimA }] }]}>
+                <View style={styles.filledDotWhite} />
+                </Animated.View>
+
+                <Animated.View style={[styles.pulseShapeRight, { transform: [{ scale: pulseAnimB }] }]}>
+                  <View style={styles.filledDotPink} />
+                </Animated.View>
+
+                <Animated.View style={[styles.pulseShapeBottom, { transform: [ { scale: pulseAnimC }] }]}>
+                  <View style={styles.filledDotBlue} />
+                </Animated.View>
+
+                <Animated.View style={[styles.pulseShapeLeft, { transform: [{ scale: pulseAnimD }] }]}>
+                <View style={styles.filledDotGreen} />
+                </Animated.View>
+
+              </View>
+        </TouchableOpacity>
+
 
     </GestureHandlerRootView>
   );
@@ -287,7 +470,7 @@ const styles = StyleSheet.create({
     flex: 2,
     width: '90%',
     maxWidth: 500,
-    // height: 440,
+    // height: 460,
     backgroundColor: '#80CBC4',
     borderRadius: 15,
     borderWidth: 3,
@@ -311,9 +494,8 @@ const styles = StyleSheet.create({
     borderColor: '#FFB300',
     backgroundColor: '#FFB30040',
     borderRadius: 5,
-    top: '50%',
     left: '50%',
-    transform: [{ translateX: -100 }, { translateY: -30 }], // Center the box
+    transform: [{ translateX: -100 }], // Center the box
   },
 
   crosshairVertical: {
@@ -440,5 +622,97 @@ const styles = StyleSheet.create({
     zIndex: 10,
     padding: 10,
   },
+
+  thumbButtonWrapper: {
+    height: 100,
+    width: 100,
+    borderRadius: 50,
+    borderWidth: 3,
+    borderColor: '#FFB300',
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'absolute',
+    backgroundColor: '#FFB30040',
+    // zIndex: 10,
+  },
+  
+  thumbButtonInner: {
+    height: 80,
+    width: 80,
+    borderRadius: 40,
+    backgroundColor: '#FFD269',
+    borderColor: '#FFB300',
+    borderWidth: 2,
+  },
+
+  pulseShapeTop: {
+    position: 'absolute',
+    top: -15,
+    left: 35,
+  },
+
+  pulseShapeRight: {
+    position: 'absolute',
+    right: -15,
+    top: 35,
+  },
+
+  pulseShapeBottom: {
+    position: 'absolute',
+    bottom: -15,
+    left: 35,
+
+  },
+
+  pulseShapeLeft: {
+    position: 'absolute',
+    left: -15,
+    top: 35,
+  },
+
+  pulseShapeStar: {
+    position: 'absolute',
+    top: -5,
+    right: 0,
+
+  },
+
+  filledDotWhite: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: 'white',
+    borderColor: '#FFB300',
+    borderWidth: 2,
+  },
+
+
+  filledDotPink: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#FF8A80',
+    borderColor: '#FFB300',
+    borderWidth: 2,
+  },
+
+  filledDotBlue: {
+    width: 10,
+    height: 10,
+    borderRadius: 10,
+    backgroundColor: '#4FC3F7',
+    borderColor: '#FFB300',
+    borderWidth: 3,
+  },
+
+  filledDotGreen: {
+    width: 10,
+    height: 10,
+    borderRadius: 10,
+    backgroundColor: '#26969A',
+    borderColor: '#FFB300',
+    borderWidth: 3,
+  }
+
 
 });

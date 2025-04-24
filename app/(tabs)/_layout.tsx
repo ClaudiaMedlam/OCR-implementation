@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Text, TouchableOpacity, View, StyleSheet } from 'react-native';
+import { Text, TouchableOpacity, View, StyleSheet, Modal } from 'react-native';
 import { Tabs, useSegments, useLocalSearchParams } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as SplashScreen from "expo-splash-screen";
@@ -16,15 +16,18 @@ import { TTSProvider, useTTS } from '@/utils/TTSContext';
 SplashScreen.preventAutoHideAsync(); // Prevent splash screen from hiding automatically
 
 const CustomHeaderTitle = () => (
-    <Text style={{ 
-        fontSize: 24, 
-        fontWeight: "bold", 
-        color: "#004D40", 
-        fontFamily: "ComicNeue-Bold",
-        marginLeft: 15, 
-         }}>
-            ReadEasy
-    </Text>
+    <View style={{justifyContent: 'flex-end', height: '100%', paddingBottom: 20}}>
+        <Text style={{ 
+            fontSize: 32, 
+            fontWeight: "bold", 
+            color: "#004D40", 
+            fontFamily: "ComicNeue-Bold",
+            marginLeft: 15, 
+            }}>
+                ReadEasy
+        </Text>
+    </View>
+    
 );
 
 const Tab = createBottomTabNavigator();
@@ -63,6 +66,7 @@ function TabLayoutContent() {
     const [lastTTSPress, setLastTTSPress] = useState<number | null>(null); // So can register if button pressed more than once
     const [showAlert, setShowAlert] = useState(false); // To show warning if TTS button is pressed quickly - in case device is on mute
     const [ alertMessage, setAlertMessage] = useState(""); // ditto
+    const [settingsVisible, setSettingsVisible] = useState(false); // Shows Settings Modal
 
 
     const hideTabBar = !['definition', 'morpheme'].includes(activeTab); // So that tab bar can be hidden on required pages
@@ -109,19 +113,19 @@ function TabLayoutContent() {
                 headerTitle: () => null,
                 headerStyle: {
                     backgroundColor: '#80CBC4',
-                    height: 120,
+                    height: 120, // This should match the header height defined in (tabs)/index (currently 120)
                 },
                 headerShadowVisible: false,
                 headerTintColor: '#004D40',
                 headerLeft: CustomHeaderTitle,
                 headerRight: () => (
-                    <View style={{flexDirection: 'row'}}>
+                    <View style={{flexDirection: 'row', height: '100%', paddingBottom: 20, alignItems: 'flex-end'}}>
                         <TouchableOpacity onPress={() => console.log("Profile Pressed")}>
-                            <Ionicons name="person-outline" size={32} color="004D40" style={{ marginRight: 15}} />
+                            <Ionicons name="person-outline" size={38} color="#004D40" style={{ marginRight: 30}} />
                         </TouchableOpacity>
                         
-                        <TouchableOpacity onPress={() => console.log("Settings Pressed")}>
-                            <Ionicons name="settings-outline" size={32} color="004D40" style={{ marginRight: 15}} />
+                        <TouchableOpacity onPress={() => setSettingsVisible(true)}>
+                            <Ionicons name="settings-outline" size={38} color="#004D40" style={{ marginRight: 15}} />
                         </TouchableOpacity>
                     </View>
                     
@@ -239,6 +243,21 @@ function TabLayoutContent() {
 
         </Tabs>
 
+        <Modal
+            animationType='slide'
+            visible={settingsVisible}
+            onRequestClose={() => setSettingsVisible(false)}
+        >
+            <View style={styles.modalHolder}>
+                <Text style={styles.modalText}>Settings will be here in a future version.</Text>
+                <Text style={styles.modalText}>Options will include font size, colour themes, and voice/accent preferences.</Text>
+                <TouchableOpacity onPress={() => setSettingsVisible(false)} style={styles.closeButton}>
+                    <Text style={styles.closeButtonText}>Close</Text>
+                </TouchableOpacity>
+            </View>
+
+        </Modal>
+
         {showAlert && (
             <View style={styles.alertContainer}>
                 <Text style={styles.alertText}>{alertMessage}</Text>
@@ -267,4 +286,30 @@ const styles = StyleSheet.create({
         fontSize: 22,
         fontWeight: "bold",
     },
+
+    modalHolder: {
+        flex: 1,
+        marginTop: 120, // This allows the header to remain visible
+        backgroundColor: '#fff',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+    },
+
+    modalText: {
+        fontSize: 18,
+        marginBottom: 20,
+    },
+
+    closeButton: {
+        marginTop: 30,
+        padding: 10,
+        backgroundColor: '#004D40',
+        borderRadius: 10,
+    },
+
+    closeButtonText: {
+        color: '#fff',
+        fontWeight: 'bold',
+    }
 });
