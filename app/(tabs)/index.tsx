@@ -12,6 +12,7 @@ import Button from '@/components/Button';
 import ImageViewer from '@/components/ImageViewer';
 import { funWords, properNouns } from "@/constants/wordLists";
 import { Ionicons } from '@expo/vector-icons';
+import { BACKEND_URL } from "@/constants/config";
 
 const PlaceholderImage = require("@/assets/images/Slime-snapshot.jpeg");
 
@@ -31,8 +32,6 @@ type PositionProps = {
   right?: number;
   translate?: [string, number]; // or whatever shape you're using for transform
 };
-
-const GOOGLE_VISION_API_KEY = "AIzaSyC78EQJEDEwiCWaV_cwYU9vjOTvvlSFWX0"; // ADDED FOR OCR
 
 export default function Index() {
   const router = useRouter(); // reroutes to next page
@@ -206,25 +205,27 @@ export default function Index() {
     console.log("Sending image to Google Vision API...")
 
     try {
+      // const body = {
+      //   requests: [
+      //     {
+      //       image: {content: base64 },
+      //       features: [{ type: "TEXT_DETECTION" }],
+      //     },
+      //   ],
+      // };
+
       const body = {
-        requests: [
-          {
-            image: {content: base64 },
-            features: [{ type: "TEXT_DETECTION" }],
-          },
-        ],
+        imageBase64: base64,
       };
 
-      const response = await fetch(
-        `https://vision.googleapis.com/v1/images:annotate?key=${GOOGLE_VISION_API_KEY}`,
-        {
+      const response = await fetch(`${BACKEND_URL}/ocr`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
-        }
-      );
+      });
 
       const result = await response.json();
+      console.log("✅ Full OCR response from backend:", result); // ADD THIS
 
 
       if (result.responses && result.responses[0]) {
