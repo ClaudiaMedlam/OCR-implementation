@@ -205,14 +205,6 @@ export default function Index() {
     console.log("Sending image to Google Vision API...")
 
     try {
-      // const body = {
-      //   requests: [
-      //     {
-      //       image: {content: base64 },
-      //       features: [{ type: "TEXT_DETECTION" }],
-      //     },
-      //   ],
-      // };
 
       const body = {
         imageBase64: base64,

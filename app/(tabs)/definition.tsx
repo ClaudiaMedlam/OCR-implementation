@@ -6,8 +6,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 
 import { stopTTS } from '@/utils/TTSHelper';
 import { useTTS } from '@/utils/TTSContext';
-
-
+import { BACKEND_URL } from "@/constants/config";
 
 // Define the interface
 interface DefinitionData {
@@ -56,8 +55,7 @@ export default function DefinitionScreen() {
     console.log(`Fetching definition for word_id: ${word_id}`);
     const fetchDefinition = async () => {
       try {
-        const response = await fetch(`http://192.168.1.150:5050/definition/${word_id}`); // at home
-        // const response = await fetch(`[enter temporary ngkok link here]/definition/${word_id}`); // at uni
+        const response = await fetch(`${BACKEND_URL}/definition/${word_id}`); 
         const data = await response.json();
   
         if (response.ok && data) {

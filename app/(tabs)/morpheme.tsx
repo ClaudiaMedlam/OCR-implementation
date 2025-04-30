@@ -6,6 +6,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 
 import { triggerTTS, stopTTS } from '@/utils/TTSHelper';
 import { TTSProvider, useTTS } from '@/utils/TTSContext';
+import { BACKEND_URL } from "@/constants/config";
 
 
 // Define the interface
@@ -45,8 +46,7 @@ export default function MorphemeScreen() {
 
         const fetchMorpheme = async () => {
           try {
-            const response = await fetch(`http://192.168.1.150:5050/explanation/${word_id}`); // at home
-            // const response = await fetch(`[enter temporary ngkok link here]/explanation/${word_id}`); // at uni
+            const response = await fetch(`${BACKEND_URL}/explanation/${word_id}`); 
             const data = await response.json();
       
             if (response.ok && data) {

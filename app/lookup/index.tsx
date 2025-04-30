@@ -4,6 +4,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from 'expo-router';
 
+import { BACKEND_URL } from "@/constants/config";
+
 export default function Lookup() {
   const navigation = useNavigation();
   const { word } = useLocalSearchParams(); // get the passed word
@@ -14,8 +16,7 @@ export default function Lookup() {
 
   const fetchWordDetails = async () => {
     try {
-      // const response = await fetch(`https://6be2-158-223-122-234.ngrok-free.app/data/${word}`); // At uni
-      const response = await fetch(`http://192.168.1.150:5050/data/${word}`); // At home
+      const response = await fetch(`${BACKEND_URL}/data/${word}`);
 
       const data = await response.json();
 
