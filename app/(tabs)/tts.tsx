@@ -1,3 +1,5 @@
+// Placeholder page to allow button to be shown on tab bar.
+
 import { View, Text } from 'react-native';
 
 export default function TTS() {

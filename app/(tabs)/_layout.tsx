@@ -3,14 +3,11 @@ import { Text, TouchableOpacity, View, StyleSheet, Modal } from 'react-native';
 import { Tabs, useSegments, useLocalSearchParams } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as SplashScreen from "expo-splash-screen";
-import * as Speech from 'expo-speech';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 
 import { loadFonts } from "@/app/fonts"; 
 import { triggerTTS } from '@/utils/TTSHelper';
-import DefinitionScreen from '@/app/(tabs)/definition';
-import MorphemeScreen from '@/app/(tabs)/morpheme';
 import { TTSProvider, useTTS } from '@/utils/TTSContext';
 
 SplashScreen.preventAutoHideAsync(); // Prevent splash screen from hiding automatically

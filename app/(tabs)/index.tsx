@@ -1,20 +1,14 @@
 import { Text, View, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity, Platform, Image, Dimensions, Animated, Easing } from 'react-native';
 import React, { useState, useRef, useEffect, createFactory } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import * as ImagePicker from 'expo-image-picker';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as ImageManipulator from 'expo-image-manipulator';
-import { Camera, CameraView, CameraType, useCameraPermissions } from 'expo-camera';
+import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useFocusEffect } from '@react-navigation/native';
 
 import Button from '@/components/Button'; 
-import ImageViewer from '@/components/ImageViewer';
-import { funWords, properNouns } from "@/constants/wordLists";
-import { Ionicons } from '@expo/vector-icons';
 import { BACKEND_URL } from "@/constants/config";
-
-const PlaceholderImage = require("@/assets/images/Slime-snapshot.jpeg");
 
 // For defining the word type to be sent for OCR
 type OCRAnnotation = {
@@ -24,14 +18,6 @@ type OCRAnnotation = {
   };
 };
 
-// For position props for animation
-type PositionProps = {
-  top?: number;
-  left?: number;
-  bottom?: number;
-  right?: number;
-  translate?: [string, number]; // or whatever shape you're using for transform
-};
 
 export default function Index() {
   const router = useRouter(); // reroutes to next page
@@ -45,10 +31,7 @@ export default function Index() {
   const [buttonLayout, setButtonLayout] = useState<'single' | 'double'>('single'); // default to one button, bottom middle
 
   // Image and OCR
-  const [selectedImage, setSelectedImage] = useState<string | undefined>(undefined);
   const [croppedImage, setCroppedImage] = useState<string | null>(null); // ADDED FOR OCR STEP 2 CROPPING
-  const [result, setResult] = useState<string | null>(null);
-  const [extractedText, setExtractedText] = useState<string | null>(null); // ADDED FOR OCR
   const [loading, setLoading] = useState(false); // ADDED FOR OCR
   const [warningText, setWarningText] = useState<string | null>(null);
 
