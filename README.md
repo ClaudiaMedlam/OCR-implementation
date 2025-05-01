@@ -1,50 +1,89 @@
-# Welcome to your Expo app 👋
+# 📖 🔍 App Overview
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+This is a child-friendly, dyslexia-aware word recognition app built with React Native (via Expo). It uses the device camera to scan printed text, sends the image to a custom backend for OCR (via the Google Cloud Vision API), and returns structured word data including child-readable pronunciations (and audio option via TTS), explanations and examples of use.
 
-## Get started
+# ▶️ Get started
+## ✅ Requirements
 
-1. Install dependencies
+The application is created in React Native with Expo and requires the Expo Go app in order to run on a physical mobile device.
+
+- **Node.js**
+  - If not already installed, download from [nodejs.org](https://nodejs.org/en/)
+     - Choose the version labelled "LTS: Recommended for most users"
+     - Use the **default installation settings**
+     - **Do not** select the option for installing additional tools (if prompted)
+    
+- **Expo CLI**
+   - ```npm install -g expo-cli```
+  
+- **Expo Go app** (this is required in order to run the application on a physical mobile device)
+  - [📲 iOS – App Store](https://apps.apple.com/gb/app/expo-go/id982107779)
+  - [📲 Android – Google Play](https://play.google.com/store/apps/details?id=host.exp.exponent&utm_source=emea_Med)
+
+## 📥 Installation
+1. Clone the repository
+
+   ```bash
+   git clone https://github.com/ClaudiaMedlam/OCR-implementation.git
+   cd OCR-implementation
+   ```
+   
+3. Install dependencies
 
    ```bash
    npm install
    ```
 
-2. Start the app
+4. Start the app
 
    ```bash
     npx expo start
    ```
+5. Open the app on your device using Expo Go (scan the QR code in your terminal or browser)
 
-In the output, you'll find options to open the app in a
+# 📝 Backend note
+The backend (built with Node.js and Express) is hosted on a virtual private server and runs continuously. It handles image processing via the Google Cloud Vision API and communicates with a MySQL database to return structured word data.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+**N.B.** The backedn is **not included in this repository** due to secure credentials (e.g. API keys). However, it is already live and connected to the frontend, so the app will function as intended without any additional setup.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+# 🧪 Testing note
+As this app is still in development 🐣, the database of recognised words is not yet comprehensive. 
 
-## Get a fresh project
+For testing purposes, you can scan words in [👉 this list](link), which contains words already stored in the database and will return results when scanned.
 
-When you're ready, run:
 
-```bash
-npm run reset-project
-```
+# 📚 Libraries included
+- **Core:**
+   - react
+   - react-native (base library for building mobile UIs)
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+- **Navigation & routing:**
+   - expo-router (file-based navigation)
+   - @react-navigation/native
+   - @react-navigation/bottom-tabs (tab navigation setup)
 
-## Learn more
+- **UI & animation:**
+   - react-native-gesture-handler (touch/gesture support)
+   - react-native-safe-area-context (handles safe screen areas)
+   - @expo/vector-icons (Icon library, including Ionicons and FontAwesome)
 
-To learn more about developing your project with Expo, look at the following resources:
+- **Media & camera:**
+   - expo-camera (access to device camera)
+   - expo-image-manipulator (editing images)
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+- **Speech & audio:**
+   - expo-speech (Text-to-speech (TTS))
 
-## Join the community
+- **UX Enhancements:**
+   - expo-splash-screen (custom splash screen)
+   - expo-status-bar (consistent status bar styling)
+   - expo-font (for loading custom fonts)
 
-Join our community of developers creating universal apps.
+In addition, I created custom utilities:
+- TTSHelper (handles tesxt-to-speech playback logic)
+- TTSContext (manages shared TTS state across components)
+- config.js (stores app-wide constants)
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+
+
+
