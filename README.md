@@ -49,7 +49,7 @@ The backend (built with Node.js and Express) is hosted on a virtual private serv
 # 🧪 Testing note
 As this app is still in development 🐣, the database of recognised words is not yet comprehensive. 
 
-For testing purposes, you can scan words in [👉 this list](link), which contains words already stored in the database and will return results when scanned.
+For testing purposes, you can scan words in [👉 this list](./word-data-table.md), which contains words already stored in the database and will return results when scanned.
 
 
 # 📚 Libraries included
