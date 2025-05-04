@@ -1,4 +1,4 @@
-import { Text, View, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity, Platform, Image, Dimensions, Animated, Easing } from 'react-native';
+import { Text, View, StyleSheet, ActivityIndicator, Alert, TouchableOpacity, Platform, Image, Dimensions, Animated, Linking } from 'react-native';
 import React, { useState, useRef, useEffect, createFactory } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -89,7 +89,44 @@ export default function Index() {
   }
 
   if ( !permission.granted) {
-    //Camera permissions are not granted yet
+    // Permission permanently denied — user needs to go to settings
+    if (!permission.canAskAgain) {
+      return (
+        <View style={styles.container}>
+          <View style={{ paddingTop: 20 }}>
+            <Text style={styles.text}>
+              We need your permission to show the camera.
+            </Text>
+          </View>
+          <Button
+            theme="primary"
+            onPress={() => {
+              if (!permission.canAskAgain) {
+                Alert.alert(
+                  "Permission blocked",
+                  "Please enable camera access in your device settings.",
+                  [
+                    {
+                      text: "Open Settings",
+                      onPress: () => Linking.openSettings(),
+                    },
+                    {
+                      text: "Cancel",
+                      style: "cancel",
+                    },
+                  ]
+                );
+              } else {
+                requestCameraPermission(); // Normal flow
+              }
+            }}
+            label="Allow camera use"
+          />
+        </View>
+      );
+    }
+
+    // Permission not granted but can ask again
     return (
       <View style={styles.container}>
         <View style={{ paddingTop: 20 }}>
