@@ -29,9 +29,10 @@ The application is created in React Native with Expo and requires the Expo Go ap
    ```
    
 3. Install dependencies
+> ⚠️ **Important:** Use `--legacy-peer-deps` to avoid conflicts with Expo SDK 53.
 
    ```bash
-   npm install
+   npm install --legacy-peer-deps
    ```
 
 4. Start the app
