@@ -64,6 +64,8 @@ function TabLayoutContent() {
     const [showAlert, setShowAlert] = useState(false); // To show warning if TTS button is pressed quickly - in case device is on mute
     const [ alertMessage, setAlertMessage] = useState(""); // ditto
     const [settingsVisible, setSettingsVisible] = useState(false); // Shows Settings Modal
+    const [profileVisible, setProfileVisible] = useState(false); // Show Profiles Modal
+
 
 
     const hideTabBar = !['definition', 'morpheme'].includes(activeTab); // So that tab bar can be hidden on required pages
@@ -105,6 +107,9 @@ function TabLayoutContent() {
                         paddingBottom: 50, // extra space for better touchability
                         justifyContent: 'center',
                         alignItems: 'center',
+                        borderTopWidth: 0,         // removes the top line
+                        elevation: 0,              // removes Android shadow
+                        shadowOpacity: 0,          //  removes iOS shadow
                     },
                 tabBarIconStyle: {height: 75},
                 headerTitle: () => null,
@@ -117,7 +122,7 @@ function TabLayoutContent() {
                 headerLeft: CustomHeaderTitle,
                 headerRight: () => (
                     <View style={{flexDirection: 'row', height: '100%', paddingBottom: 20, alignItems: 'flex-end'}}>
-                        <TouchableOpacity onPress={() => console.log("Profile Pressed")}>
+                        <TouchableOpacity onPress={() => setProfileVisible(true)}>
                             <Ionicons name="person-outline" size={38} color="#004D40" style={{ marginRight: 30}} />
                         </TouchableOpacity>
                         
@@ -249,6 +254,21 @@ function TabLayoutContent() {
                 <Text style={styles.modalText}>Settings will be here in a future version.</Text>
                 <Text style={styles.modalText}>Options will include font size, colour themes, and voice/accent preferences.</Text>
                 <TouchableOpacity onPress={() => setSettingsVisible(false)} style={styles.closeButton}>
+                    <Text style={styles.closeButtonText}>Close</Text>
+                </TouchableOpacity>
+            </View>
+
+        </Modal>
+
+        <Modal
+            animationType='slide'
+            visible={profileVisible}
+            onRequestClose={() => setProfileVisible(false)}
+        >
+            <View style={styles.modalHolder}>
+                <Text style={styles.modalText}>Profile will be here in a future version.</Text>
+                <Text style={styles.modalText}>This could include usage history, saved words, or progress tracking.</Text>
+                <TouchableOpacity onPress={() => setProfileVisible(false)} style={styles.closeButton}>
                     <Text style={styles.closeButtonText}>Close</Text>
                 </TouchableOpacity>
             </View>

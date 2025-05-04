@@ -283,13 +283,14 @@ const styles = StyleSheet.create({
 
       scrollView: {
         flexGrow: 1,
+        // flex: 1,
         marginTop: 10,
         maxHeight: '65%',
         minHeight: '65%',
       },
 
       scrollContent: {
-        // paddingBottom: 20,
+        paddingBottom: 140, // This should allow it to fit snugly into the tab bar
       },
 
 })

@@ -22,10 +22,13 @@ export default function Lookup() {
 
       if ( response.ok && data) {
         // Word found, navigate to definition page
-        router.push({
-          pathname: '/definition',
-          params: { word: word, word_id: data.word_id },
-        });
+        // But with pause first to allow change of word
+        timeoutRef.current = setTimeout(() => {
+          router.push({
+            pathname: '/definition',
+            params: { word: word, word_id: data.word_id },
+          });
+        }, 2000); // 3 second pause
       } else {
         // Word not found in the database
         setError('Sorry, we do not currently have that word in our dictionary.');
@@ -98,29 +101,37 @@ export default function Lookup() {
   }, [word, router]);
 
   return (
-    <View style={styles.container}>
-        <View style={styles.textContainer}>
-            <Text style={styles.text}>Ok, we're looking this word up for you:</Text>
-        
-      
-            <View style={styles.wordContainer}>
-                    <Text style={styles.word}>{word}</Text>
-            </View>
-        
-        </View>
+    <View style={{ flex: 1, backgroundColor: '#E0F2F1' }}>
+      {/* Custom header at top */}
+      <View style={styles.lookupHeader}>
+        <Text style={styles.lookupHeaderText}>ReadEasy</Text>
+      </View>
 
-        <View style={styles.gifContainer}>
-            <Image
-                source={require("@/assets/gifs/Mental Health Quarantine GIF by Timothy Winchester.gif")}
-                style={styles.gif}
-                onError={() => setShowFallback(true)} // Show fallback text if Gif fails
-            />
-            {showFallback && <Text style={styles.gifFallbackText}>Loading...</Text>}
-        </View>
+      {/* Main content area */}
+      <View style={styles.container}>
+          <View style={styles.textContainer}>
+              <Text style={styles.text}>Ok, we're looking this word up for you:</Text>
+          
+        
+              <View style={styles.wordContainer}>
+                      <Text style={styles.word}>{word}</Text>
+              </View>
+          
+          </View>
 
-      <TouchableOpacity style={styles.button} onPress={() => router.back()}>
-        <Text style={styles.buttonText}>Choose a different word</Text>
-      </TouchableOpacity>
+          <View style={styles.gifContainer}>
+              <Image
+                  source={require("@/assets/gifs/Mental Health Quarantine GIF by Timothy Winchester.gif")}
+                  style={styles.gif}
+                  onError={() => setShowFallback(true)} // Show fallback text if Gif fails
+              />
+              {showFallback && <Text style={styles.gifFallbackText}>Loading...</Text>}
+          </View>
+
+        <TouchableOpacity style={styles.button} onPress={() => router.back()}>
+          <Text style={styles.buttonText}>Choose a different word</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -133,6 +144,22 @@ const styles = StyleSheet.create({
     backgroundColor: '#E0F2F1',
     padding: 20,
     paddingBottom: 120,
+  },
+
+  lookupHeader: {
+    height: 120,
+    backgroundColor: '#80CBC4',
+    justifyContent: 'flex-end',
+    paddingBottom: 20,
+    paddingLeft: 15,
+    width: '100%',
+  },
+  
+  lookupHeaderText: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    fontFamily: 'ComicNeue-Bold',
+    color: '#004D40',
   },
 
   textContainer: {
@@ -167,8 +194,8 @@ const styles = StyleSheet.create({
 
   word: {
     fontSize: 32,
-    color: '#F5F5F5',
-    fontFamily: 'ComicNeue-Bold',
+    color: '#000',
+    fontFamily: 'ComicNeue-Regular',
   },
 
   wordContainer: {

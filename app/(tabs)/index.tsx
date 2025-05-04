@@ -28,7 +28,7 @@ export default function Index() {
   const [cameraLayoutHeight, setCameraLayoutHeight] = useState<number | null>(null);
   const [cameraLayoutWidth, setCameraLayoutWidth] = useState<number | null>(null);
   const [showAppOptions, setShowAppOptions] = useState<boolean>(false);
-  const [buttonLayout, setButtonLayout] = useState<'single' | 'double'>('single'); // default to one button, bottom middle
+  const [buttonLayout, setButtonLayout] = useState<'single' | 'double'>('single'); // kept for potential future A/B testing with two buttons
 
   // Image and OCR
   const [croppedImage, setCroppedImage] = useState<string | null>(null); // ADDED FOR OCR STEP 2 CROPPING
@@ -92,7 +92,9 @@ export default function Index() {
     //Camera permissions are not granted yet
     return (
       <View style={styles.container}>
-        <Text style={styles.text}>We need your permission to show the camera</Text>
+        <View style={{ paddingTop: 20 }}>
+          <Text style={styles.text}>We need your permission to show the camera</Text>
+        </View>
         <Button theme={'primary'} onPress={requestCameraPermission} label="Allow camera use" />
       </View>
     )
@@ -208,8 +210,7 @@ export default function Index() {
           const annotations = result.responses[0].textAnnotations?.slice(1) || []; // textAnnotations = array returned by Google Vision API ; slice(1) gives the individual words in the box or an empty array
         
           let middleWord = null; // This is the word we're targetting, that is in the centre of the focusBox
-          let smallestVertDiff = Infinity; // Keeps track of the closest vertical distance from the image's centre
-          let smallestHorDiff = Infinity; // Keeps track of the closest horizontal distance from the image's centre
+          let smallestDistance = Infinity; // Keeps track of the closest distance from the image's centre
 
           annotations.forEach((annotation: OCRAnnotation) => {
             const vertices = annotation.boundingPoly?.vertices; // retrieves the list of 4 corner points of the 'box' around each word
@@ -220,12 +221,11 @@ export default function Index() {
               const vertDiff = Math.abs(centerY - imageMidY); //...and measures distance from image vertical midpoint
               const horiDiff = Math.abs(centerX - imageMidX); //...and measures distance from image vertical midpoint
 
-              if(vertDiff < smallestVertDiff) { // update closestWord if this is closer to the centre than any previous ones
-                smallestVertDiff = vertDiff;
-                if(horiDiff < smallestHorDiff) {
-                  smallestHorDiff = horiDiff;
-                  middleWord = annotation.description;
-                }
+              const totalDistance = Math.sqrt(vertDiff ** 2 + horiDiff ** 2);
+
+              if(totalDistance < smallestDistance) { // update closestWord if this is closer to the centre than any previous ones
+                smallestDistance = totalDistance;
+                middleWord = annotation.description;
               }
               
             }
@@ -364,13 +364,13 @@ export default function Index() {
               padding: 10,
               borderRadius: 10,
               borderWidth: 1,
-              borderColor: '#80CBC4',
+              borderColor: '#E0F2F1',
               left: -150,
               bottom: -50,
 
             }}
           >
-            <Text style={{ color: '#004D40', fontFamily: 'ComicNeue-Bold' }}>
+            <Text style={{ color: '#E0F2F1', fontFamily: 'ComicNeue-Bold' }}>
               {buttonLayout === 'single' ? 'X' : 'X'}
             </Text>
           </TouchableOpacity>
