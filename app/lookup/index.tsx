@@ -1,18 +1,15 @@
-import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
-import React, { useEffect, useState, useRef, useLayoutEffect } from 'react';
+import { View, Text, Image, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from 'expo-router';
 
 import { BACKEND_URL } from "@/constants/config";
 
 export default function Lookup() {
-  const navigation = useNavigation();
   const { word } = useLocalSearchParams(); // get the passed word
   const router = useRouter();
   const [showFallback, setShowFallback] = useState<boolean>(false);
-  const [error, setError] = useState<string>(''); // Error message state
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null); // Store timeout ID so that it can clear if return to homepage
+  const [showError, setShowError] = useState(false); // Error message state
+  const timeoutRef = useRef<number | null>(null); // Store timeout ID so that it can clear if return to homepage
 
   const fetchWordDetails = async () => {
     try {
@@ -31,58 +28,13 @@ export default function Lookup() {
         }, 2000); // 3 second pause
       } else {
         // Word not found in the database
-        setError('Sorry, we do not currently have that word in our dictionary.');
+        setTimeout(() => setShowError(true), 1500); // half-second delay to appear thoughtful!
       }
     } catch (err) {
       console.error("Fetch request failed: ", err);
-      setError('There was an error fetching the word details. Please try again later.')
+      setTimeout(() => setShowError(true), 1500);
     }
   };
-
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerStyle: {
-        backgroundColor: '#80CBC4',
-        height: 120,
-      },
-      headerShadowVisible: false,
-      headerTintColor: '#004D40',
-      headerTitle: () => (
-        <Text
-          style={{
-            fontSize: 24,
-            fontWeight: 'bold',
-            color: '#004D40',
-            fontFamily: 'ComicNeue-Bold',
-            marginLeft: 15,
-          }}
-        >
-          ReadEasy
-        </Text>
-      ),
-      headerRight: () => (
-        <View style={{ flexDirection: 'row' }}>
-          <TouchableOpacity onPress={() => console.log('Profile Pressed')}>
-            <Ionicons
-              name="person-outline"
-              size={32}
-              color="#004D40"
-              style={{ marginRight: 15 }}
-            />
-          </TouchableOpacity>
-
-          <TouchableOpacity onPress={() => console.log('Settings Pressed')}>
-            <Ionicons
-              name="settings-outline"
-              size={32}
-              color="#004D40"
-              style={{ marginRight: 15 }}
-            />
-          </TouchableOpacity>
-        </View>
-      ),
-    });
-  }, [navigation]);
 
   useEffect(() => {
     // Fetch word from the database
@@ -128,6 +80,27 @@ export default function Lookup() {
               {showFallback && <Text style={styles.gifFallbackText}>Loading...</Text>}
           </View>
 
+          {showError && (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>
+                Hmm… That word isn’t in our library. It might be a name or a made-up word. 
+                If you think we should add it, tap the 'Submit word’ button below. 
+              </Text>
+
+              <TouchableOpacity
+                style={styles.suggestButton}
+                onPress={() =>
+                  Alert.alert(
+                    "Coming soon!",
+                    "When clicked, this will send the word to our suggestion email account."
+                  )
+                }
+              >
+                <Text style={styles.suggestButtonText}>Submit word</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
         <TouchableOpacity style={styles.button} onPress={() => router.back()}>
           <Text style={styles.buttonText}>Choose a different word</Text>
         </TouchableOpacity>
@@ -143,7 +116,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#E0F2F1',
     padding: 20,
-    paddingBottom: 120,
+    paddingBottom: 60,
   },
 
   lookupHeader: {
@@ -163,9 +136,7 @@ const styles = StyleSheet.create({
   },
 
   textContainer: {
-    flex: 1,
-    paddingTop: 50,
-
+    marginTop: 10,
   },
 
   text: {
@@ -175,12 +146,11 @@ const styles = StyleSheet.create({
   },
 
   button: {
-    flex: 1 / 2,
     backgroundColor: '#80CBC4',
     paddingLeft: 30,
     paddingRight: 30,
     width: 'auto',
-    height: 'auto',
+    height: 100,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 10,
@@ -199,15 +169,14 @@ const styles = StyleSheet.create({
   },
 
   wordContainer: {
-    flex: 1,
     backgroundColor: '#FFB300',
     width: 'auto',
     maxWidth: '90%',
-    height: 'auto',
+    height: 100,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 15,
-    marginTop: 50,
+    marginTop: 20,
     marginBottom: 20,
     paddingLeft: 75,
     paddingRight: 75,
@@ -237,5 +206,34 @@ const styles = StyleSheet.create({
    backgroundColor: "rgba(0, 0, 0, 0.5)", // Slight background for visibility
    padding: 5,
    borderRadius: 5,
-  }
+  },
+
+  errorContainer: {
+    marginVertical: 20,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+  },
+  
+  errorText: {
+    fontSize: 18,
+    color: '#B00020',
+    textAlign: 'center',
+    fontFamily: 'ComicNeue-Bold',
+    marginBottom: 10,
+  },
+  
+  suggestButton: {
+    backgroundColor: '#FFB300',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    marginTop: 10,
+  },
+  
+  suggestButtonText: {
+    color: '#004D40',
+    fontSize: 20,
+    fontFamily: 'ComicNeue-Bold',
+  },
+
 });
