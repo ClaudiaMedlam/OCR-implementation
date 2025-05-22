@@ -136,7 +136,9 @@ export default function MorphemeScreen() {
 
               {morpheme?.summary && (
                 <View style={styles.defContainer}>
-                  <Text style={styles.defText}>{formatItalics(morpheme?.summary)}</Text>
+                  <Text style={styles.defText}>
+                    {formatItalics(morpheme.summary.replace(/\/\//g, "\n"))}
+                  </Text>
                 </View>
               )}
             
