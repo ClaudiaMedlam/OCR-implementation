@@ -23,7 +23,7 @@ interface DefinitionData {
 export default function DefinitionScreen() {
   const { word, word_id } = useLocalSearchParams(); // Get the passed word
   const { setTTStext } = useTTS(); // Use context to store text
-  const [pronunciation, setPronunciation] = useState<JSX.Element[] | null>(null);
+  const [pronunciation, setPronunciation] = useState<string | null>(null);
   const [definition, setDefinition ] = useState<DefinitionData | null>(null);
   const [isToolTipVisible, setIsToolTipVisible] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -39,16 +39,24 @@ export default function DefinitionScreen() {
     const parts = pronunciation.split(/(\*.*?\*)/);
 
 
-    return parts.map((part, index) => {
-      if (part.startsWith("*") && part.endsWith("*")) {
+    return (
+      <Text>
+        {parts.map((part, index) => {
+          const isBold = part.startsWith('*') && part.endsWith('*');
+          const clean = part.replace(/\*/g, '');
+
         return (
-          <Text key={index} style={{ fontFamily: 'ComicNeue-Bold'}}>
-            {part.slice(1, -1)} {/* Remove surrounding "*" */}
+          <Text 
+            key={index} 
+            style={isBold ? { fontFamily: 'ComicNeue-Bold'} : undefined}
+          >
+              {clean}
           </Text>
         );
-      }
-      return <Text key={index}>{part.replace(/\*/g, "")}</Text>; // Removes the * characters
-    });
+      })}
+      </Text>
+      
+    );
   }
 
   useEffect(() => {
@@ -59,7 +67,7 @@ export default function DefinitionScreen() {
         const data = await response.json();
   
         if (response.ok && data) {
-          setPronunciation(formatPronunciation(data.pronunciation));
+          setPronunciation((data.pronunciation));
           setDefinition(data); // Store entire object for easy access
 
           const text = `${word}`;
@@ -96,7 +104,9 @@ export default function DefinitionScreen() {
 
             <View style={styles.container}> 
                 <View style={styles.proContainer}>
-                    <Text style={styles.pronunciationText}>{pronunciation}</Text>
+                    <Text style={styles.pronunciationText}>
+                      {pronunciation && formatPronunciation(pronunciation)}
+                    </Text>
                     <TouchableOpacity onPress={() => setIsToolTipVisible(!isToolTipVisible)}>
                         <Ionicons name='help-circle' color='#F5F5F5' size={40} />
                     </TouchableOpacity>
@@ -120,7 +130,9 @@ export default function DefinitionScreen() {
             >
               <View style={styles.fullDefContainer}>
                   <View style={styles.defContainer}>
-                      <Text style={styles.defText}>{definition?.part1_def}</Text>
+                      <Text style={styles.defText}>
+                          {formatItalics(definition?.part1_def?.replace(/\/\//g, '\n') || '')}
+                      </Text>
                   </View>
 
                   <View style={styles.defContainer}>
@@ -150,7 +162,9 @@ export default function DefinitionScreen() {
 
                   {definition?.part2_def && (
                     <View style={styles.defContainer}>
-                      <Text style={styles.defText}>{definition?.part2_def}</Text>
+                      <Text style={styles.defText}>
+                          {formatItalics(definition.part2_def.replace(/\/\//g, '\n'))}
+                      </Text>
                     </View>
                   )}
                   
@@ -160,6 +174,21 @@ export default function DefinitionScreen() {
             
         </View>
     )
+}
+
+function formatItalics(text: string) {
+  const parts = text.split(/(\*.*?\*)/);
+
+  return parts.map((part, index) => {
+    if (part.startsWith("*") && part.endsWith("*")) {
+      return (
+        <Text key={index} style={{ fontFamily: 'ComicNeue-Italic'}}>
+          {part.slice(1, -1)} 
+        </Text>
+      );
+    }
+    return <Text key={index}>{part}</Text>;
+  });
 }
 
 const styles = StyleSheet.create({

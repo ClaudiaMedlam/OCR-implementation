@@ -7,6 +7,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { triggerTTS, stopTTS } from '@/utils/TTSHelper';
 import { TTSProvider, useTTS } from '@/utils/TTSContext';
 import { BACKEND_URL } from "@/constants/config";
+import ExpandableText from '@/components/ExpandableText';
 
 
 // Define the interface
@@ -24,6 +25,8 @@ interface MorphemeData {
   part5_expl?: string;
   summary?: string;
 }
+
+
 
 export default function MorphemeScreen() {
     const { word, word_id } = useLocalSearchParams(); // Get the passed word
@@ -125,9 +128,14 @@ export default function MorphemeScreen() {
                         </View>
 
                         <View style={styles.columnRight}>
-                            <Text style={styles.defText}>
-                                {expl && formatItalics(expl)}
-                            </Text>
+                                {expl && 
+                                <ExpandableText
+                                  text={expl}
+                                  containerStyle={styles.expandableExpl}
+                                  expandedStyle={styles.expandableExplExpanded}
+                                  textStyle={styles.expandableExplText}
+                                />
+                                }
                         </View>
                                     
                     </View>
@@ -287,6 +295,20 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         minHeight: 100,
         flexDirection: 'row',
+      },
+
+      expandableExpl: {
+        backgroundColor: '#303F9F',
+      },
+
+      expandableExplExpanded: {
+        backgroundColor: '#303F9F',
+      },
+
+      expandableExplText: {
+        color: '#E0F2F1',
+        fontFamily: 'ComicNeue-Regular',
+        fontSize: 20,
       },
 
       scrollView: {
